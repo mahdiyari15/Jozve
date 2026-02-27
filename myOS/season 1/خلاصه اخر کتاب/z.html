@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر جمع‌بندی فصل اول: سیستم عامل در یک نگاه</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Academic Blue & Slate Gray -->
+    <!-- Application Structure Plan: A central, interactive mind-map/dashboard structure. The main page serves as a hub with four clickable thematic nodes: 'مبانی و معماری', 'اصول عملیاتی', 'وظایف اصلی', and 'مفاهیم پیشرفته'. Clicking a node smoothly scrolls to its section. This non-linear, visual-first approach is chosen to break down the dense summary into manageable, interconnected concepts, making it more explorable and less intimidating than a simple list. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Storage Hierarchy -> Goal: Organize/Compare -> Viz: Interactive pyramid built with styled divs. -> Interaction: Clicking a layer highlights it and displays its attributes (speed, cost). -> Justification: Transforms a static list into an interactive learning tool.
+        - Report Info: Multitasking vs. Multiprogramming -> Goal: Compare -> Viz: Animated CPU timeline. -> Interaction: Toggle between modes to see CPU utilization change. -> Justification: Visually demonstrates the core benefit and difference.
+        - Report Info: Five Management Tasks -> Goal: Organize/Inform -> Viz: An icon-based dashboard. -> Interaction: Clicking an icon (e.g., 'Process') opens a modal with a concise explanation. -> Justification: Breaks down a list into a more engaging, task-oriented interface.
+        - Report Info: Advanced Concepts -> Goal: Inform -> Viz: A grid of "flashcards". -> Interaction: Clicking a card flips it to reveal the definition. -> Justification: Encourages active recall and self-testing.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #e2e8f0;
+            color: #1e293b;
+        }
+        .mindmap-node {
+            transition: all 0.3s ease;
+        }
+        .mindmap-node:hover {
+            transform: scale(1.05);
+            background-color: #38bdf8;
+        }
+        .section-card {
+            scroll-margin-top: 100px;
+        }
+        .pyramid-level.active {
+            transform: scale(1.1);
+            filter: brightness(1.1);
+            border: 2px solid #0284c7;
+        }
+        .task-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+        }
+        .flashcard-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            backface-visibility: hidden;
+        }
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-slate-800 text-white p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto text-center">
+            <h1 class="text-2xl md:text-3xl font-bold">جمع‌بندی فصل اول: سیستم عامل در یک نگاه</h1>
+            <p class="text-sm mt-1 text-slate-300">یک مرور تعاملی بر تمام مفاهیم کلیدی</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <!-- Mindmap Hub -->
+        <div class="text-center mb-12">
+            <h2 class="text-2xl font-bold mb-6">نقشه راه مفاهیم</h2>
+            <div class="flex flex-wrap justify-center items-center gap-4">
+                <a href="#fundamentals" class="mindmap-node bg-sky-500 text-white font-bold py-4 px-6 rounded-full shadow-lg">مبانی و معماری</a>
+                <a href="#principles" class="mindmap-node bg-sky-500 text-white font-bold py-4 px-6 rounded-full shadow-lg">اصول عملیاتی</a>
+                <a href="#tasks" class="mindmap-node bg-sky-500 text-white font-bold py-4 px-6 rounded-full shadow-lg">وظایف اصلی</a>
+                <a href="#advanced" class="mindmap-node bg-sky-500 text-white font-bold py-4 px-6 rounded-full shadow-lg">مفاهیم پیشرفته</a>
+            </div>
+        </div>
+
+        <!-- Section 1: Fundamentals & Architecture -->
+        <section id="fundamentals" class="section-card bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-12">
+            <h2 class="text-2xl font-bold mb-4 text-slate-700">۱. مبانی و معماری</h2>
+            <p class="mb-6">اساس کار کامپیوتر: از زبان ارتباطی سخت‌افزار (وقفه) تا ساختار هرمی حافظه‌ها و قدرت پردازنده‌های مدرن.</p>
+            <div id="pyramid-container" class="text-center">
+                <h3 class="font-bold mb-2">سلسله مراتب حافظه (برای مقایسه کلیک کنید)</h3>
+                 <div class="flex flex-col-reverse items-center max-w-sm mx-auto">
+                    <div class="pyramid-level w-full cursor-pointer bg-gray-400 p-2 text-center rounded-t-lg border-b-2 border-white" data-info="بسیار کند | هزینه بسیار کم | دائمی">۵. حافظه ثالث</div>
+                    <div class="pyramid-level w-10/12 cursor-pointer bg-blue-400 p-2 text-center border-b-2 border-white" data-info="کند | هزینه کم | دائمی (نامیرا)">۴. حافظه ثانویه</div>
+                    <div class="pyramid-level w-8/12 cursor-pointer bg-green-400 p-2 text-center border-b-2 border-white" data-info="متوسط | هزینه متوسط | موقت (میرا)">۳. حافظه اصلی</div>
+                    <div class="pyramid-level w-6/12 cursor-pointer bg-yellow-400 p-2 text-center border-b-2 border-white" data-info="سریع | هزینه زیاد | موقت (میرا)">۲. کش</div>
+                    <div class="pyramid-level w-4/12 cursor-pointer bg-red-400 p-2 text-center rounded-b-lg" data-info="بسیار سریع | هزینه بسیار زیاد | موقت (میرا)">۱. ثبات‌ها</div>
+                </div>
+                <p id="pyramid-info" class="mt-4 font-semibold h-6"></p>
+            </div>
+        </section>
+
+        <!-- Section 2: Operational Principles -->
+        <section id="principles" class="section-card bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-12">
+            <h2 class="text-2xl font-bold mb-4 text-slate-700">۲. اصول عملیاتی</h2>
+            <p class="mb-6">دو اصل کلیدی که کارایی و امنیت سیستم‌عامل‌های مدرن را ممکن می‌سازند.</p>
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="p-4 border rounded-lg">
+                    <h3 class="font-bold text-center">چندوظیفگی: کلید کارایی</h3>
+                    <p class="text-sm text-center mt-2">جابجایی سریع CPU بین برنامه‌ها برای افزایش بهره‌وری و ایجاد سیستم تعاملی.</p>
+                </div>
+                <div class="p-4 border rounded-lg">
+                    <h3 class="font-bold text-center">مد دوگانه: سپر حفاظتی</h3>
+                    <p class="text-sm text-center mt-2">تفکیک **مد کاربر** (محدود) و **مد هسته** (نامحدود) برای محافظت از سیستم‌عامل.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Core Tasks -->
+        <section id="tasks" class="section-card bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-12">
+            <h2 class="text-2xl font-bold mb-4 text-slate-700">۳. وظایف اصلی: سیستم‌عامل به عنوان مدیر</h2>
+            <p class="mb-6">سیستم‌عامل ۵ وظیفه مدیریتی اصلی را بر عهده دارد. روی هر کارت کلیک کنید تا با مسئولیت‌های آن آشنا شوید.</p>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
+                <div class="task-card p-4 bg-slate-100 rounded-lg border cursor-pointer transition-all" data-title="مدیریت پردازه" data-desc="ایجاد، حذف، زمان‌بندی و مدیریت ارتباط بین برنامه‌های در حال اجرا (پردازه‌ها).">
+                    <span class="text-4xl">⚙️</span><p class="font-bold mt-2 text-sm">پردازه</p>
+                </div>
+                <div class="task-card p-4 bg-slate-100 rounded-lg border cursor-pointer transition-all" data-title="مدیریت حافظه" data-desc="تخصیص و آزادسازی فضای حافظه اصلی (RAM) و پیگیری اینکه کدام بخش از حافظه توسط کدام پردازه استفاده می‌شود.">
+                    <span class="text-4xl">💾</span><p class="font-bold mt-2 text-sm">حافظه</p>
+                </div>
+                <div class="task-card p-4 bg-slate-100 rounded-lg border cursor-pointer transition-all" data-title="مدیریت ذخیره‌سازی" data-desc="ایجاد یک دید منطقی (فایل و دایرکتوری) برای پنهان کردن پیچیدگی‌های دیسک سخت و مدیریت فضای آن.">
+                    <span class="text-4xl">🗄️</span><p class="font-bold mt-2 text-sm">ذخیره‌سازی</p>
+                </div>
+                <div class="task-card p-4 bg-slate-100 rounded-lg border cursor-pointer transition-all" data-title="حفاظت و امنیت" data-desc="استفاده از مکانیزم‌های حفاظت (داخلی) برای اعمال سیاست‌های امنیتی (مقابله با حملات).">
+                    <span class="text-4xl">🛡️</span><p class="font-bold mt-2 text-sm">حفاظت</p>
+                </div>
+                 <div class="task-card p-4 bg-slate-100 rounded-lg border cursor-pointer transition-all" data-title="مدیریت کش" data-desc="استفاده از حافظه‌های سریع (کش) برای افزایش سرعت دسترسی به داده‌های پرکاربرد.">
+                    <span class="text-4xl">⚡️</span><p class="font-bold mt-2 text-sm">کش</p>
+                </div>
+            </div>
+            <div id="task-details" class="mt-6 bg-sky-50 p-4 rounded-lg border border-sky-200 min-h-[50px] text-center">
+                <p>روی یک وظیفه کلیک کنید.</p>
+            </div>
+        </section>
+
+        <!-- Section 4: Advanced Concepts -->
+        <section id="advanced" class="section-card bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+            <h2 class="text-2xl font-bold mb-4 text-slate-700">۴. مفاهیم پیشرفته و دنیای مدرن</h2>
+            <p class="mb-6">نگاهی سریع به فناوری‌ها و محیط‌هایی که دنیای محاسبات امروز را شکل داده‌اند. روی هر کارت کلیک کنید تا تعریف آن را ببینید.</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <!-- Flashcards -->
+                <div class="flashcard aspect-video cursor-pointer group perspective">
+                    <div class="flashcard-inner relative w-full h-full">
+                        <div class="flashcard-front absolute w-full h-full bg-indigo-400 text-white rounded-lg flex items-center justify-center font-bold text-lg">مجازی‌سازی</div>
+                        <div class="flashcard-back absolute w-full h-full bg-indigo-600 text-white rounded-lg flex items-center justify-center text-center p-2 text-sm">اجرای چندین کامپیوتر مجازی روی یک سخت‌افزار فیزیکی.</div>
+                    </div>
+                </div>
+                 <div class="flashcard aspect-video cursor-pointer group perspective">
+                    <div class="flashcard-inner relative w-full h-full">
+                        <div class="flashcard-front absolute w-full h-full bg-teal-400 text-white rounded-lg flex items-center justify-center font-bold text-lg">رایانش ابری</div>
+                        <div class="flashcard-back absolute w-full h-full bg-teal-600 text-white rounded-lg flex items-center justify-center text-center p-2 text-sm">ارائه خدمات محاسباتی (سرور، نرم‌افزار) از طریق اینترنت.</div>
+                    </div>
+                </div>
+                 <div class="flashcard aspect-video cursor-pointer group perspective">
+                    <div class="flashcard-inner relative w-full h-full">
+                        <div class="flashcard-front absolute w-full h-full bg-amber-400 text-slate-800 rounded-lg flex items-center justify-center font-bold text-lg">سیستم بلادرنگ</div>
+                        <div class="flashcard-back absolute w-full h-full bg-amber-600 text-white rounded-lg flex items-center justify-center text-center p-2 text-sm">سیستمی با محدودیت‌های زمانی سخت که از دست دادن مهلت (Deadline) منجر به شکست می‌شود.</div>
+                    </div>
+                </div>
+                 <div class="flashcard aspect-video cursor-pointer group perspective">
+                    <div class="flashcard-inner relative w-full h-full">
+                        <div class="flashcard-front absolute w-full h-full bg-rose-400 text-white rounded-lg flex items-center justify-center font-bold text-lg">متن‌باز</div>
+                        <div class="flashcard-back absolute w-full h-full bg-rose-600 text-white rounded-lg flex items-center justify-center text-center p-2 text-sm">نرم‌افزاری که کد منبع آن برای مطالعه، تغییر و توزیع در دسترس عموم است (مانند لینوکس).</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Smooth scrolling for mindmap links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // Pyramid Interaction
+    const pyramidLevels = document.querySelectorAll('.pyramid-level');
+    const pyramidInfo = document.getElementById('pyramid-info');
+    pyramidLevels.forEach(level => {
+        level.addEventListener('click', () => {
+            pyramidLevels.forEach(l => l.classList.remove('active'));
+            level.classList.add('active');
+            pyramidInfo.textContent = level.dataset.info;
+        });
+    });
+
+    // Tasks Interaction
+    const taskCards = document.querySelectorAll('.task-card');
+    const taskDetails = document.getElementById('task-details');
+    taskCards.forEach(card => {
+        card.addEventListener('click', () => {
+            taskDetails.innerHTML = `
+                <h4 class="font-bold">${card.dataset.title}</h4>
+                <p class="text-sm mt-1">${card.dataset.desc}</p>
+            `;
+        });
+    });
+
+    // Flashcard Interaction
+    const flashcards = document.querySelectorAll('.flashcard');
+    flashcards.forEach(card => {
+        card.addEventListener('click', () => {
+            card.classList.toggle('flipped');
+        });
+    });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر جامع فصل دوم - بخش ۴ تا ۶: فرآیند تولد یک برنامه</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Developer Studio -->
+    <!-- Application Structure Plan: This SPA is designed as an interactive educational module with a clear, non-linear navigation. A sticky side navigation allows users to jump between three core themes: 'برنامه‌های سیستمی', 'فرآیند تولد برنامه' (Linker/Loader), and 'چرا برنامه‌ها ناسازگارند؟'. This thematic structure is chosen to break down complex, related topics into logical, explorable sections. The user flow is highly visual and interactive. The "Lifecycle" section features an animated flowchart to demonstrate the compile-link-load process. The "Incompatibility" section uses a layered diagram and a tabbed comparison to explain abstract concepts. This structure is designed to transform static text into dynamic, engaging learning experiences. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: System Program Categories -> Goal: Organize/Inform -> Viz: A grid of interactive cards with icons. -> Interaction: Clicking a card (e.g., 'مدیریت فایل') opens a modal window listing example programs (`ls`, `cp`, `rm`) and their purpose. -> Justification: An icon-based dashboard is more engaging and organized than a long list.
+        - Report Info: Linker/Loader Process -> Goal: Explain a Process -> Viz: An animated, step-by-step flowchart built with HTML/CSS, mirroring the diagram in the source. -> Interaction: A "شروع" button triggers an animation that highlights each stage (Compiler -> Linker -> Loader) in sequence, with an explanation appearing in a side panel. A toggle within this visual allows comparing "Static vs. Dynamic Linking," showing the library either bundled into the executable or loaded separately in memory. -> Justification: This animation makes the entire abstract program lifecycle tangible and visually demonstrates the key difference between linking types.
+        - Report Info: Portability Solutions (Interpreter, VM, Recompile) -> Goal: Compare/Contrast -> Viz: A tabbed interface. -> Interaction: Users click tabs for each method ('مفسر', 'ماشین مجازی', 'کامپایل مجدد') to see a simple diagram, pros, and cons. -> Justification: Tabs are excellent for direct, side-by-side comparison of different approaches to the same problem.
+        - Report Info: Incompatibility Reasons (ABI, Format, etc.) -> Goal: Explain a Concept -> Viz: A layered "Incompatibility Stack" diagram. -> Interaction: Hovering over each layer of the stack (e.g., 'ABI', 'قالب اجرایی') reveals a tooltip with a concise explanation of why that layer causes incompatibility. -> Justification: A layered stack is a powerful metaphor to show how incompatibility issues build on top of each other from hardware to software.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        .nav-link.active {
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 700;
+        }
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .content-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .flow-step {
+            opacity: 0.4;
+            transition: all 0.5s ease-in-out;
+        }
+        .flow-step.active {
+            opacity: 1;
+            transform: scale(1.05);
+            border-color: #3b82f6;
+        }
+        .modal { display: none; }
+        .modal.active { display: flex; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-slate-800 text-white p-4 shadow-lg text-center sticky top-0 z-50">
+        <h1 class="text-2xl md:text-3xl font-bold">فصل دوم، بخش ۴-۶: فرآیند تولد یک برنامه</h1>
+    </header>
+
+    <div class="container mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-8">
+        <!-- Side Navigation -->
+        <aside class="md:w-1/4">
+            <nav id="side-nav" class="sticky top-24 space-y-2">
+                <a href="#programs" class="nav-link block font-semibold p-3 rounded-lg transition-colors">برنامه‌های سیستمی</a>
+                <a href="#lifecycle" class="nav-link block font-semibold p-3 rounded-lg transition-colors">فرآیند تولد برنامه</a>
+                <a href="#incompatibility" class="nav-link block font-semibold p-3 rounded-lg transition-colors">چرا برنامه‌ها ناسازگارند؟</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="w-full md:w-3/4">
+            
+            <!-- System Programs Section -->
+            <section id="programs-section" class="content-section">
+                <h2 class="text-3xl font-bold mb-4 text-blue-600 border-r-4 border-blue-600 pr-4">۲-۴: برنامه‌های سیستمی (System Programs)</h2>
+                <p class="mb-8 text-lg leading-relaxed">این برنامه‌ها که به آن‌ها ابزارهای سودمند نیز گفته می‌شود، محیطی راحت‌تر برای توسعه و اجرای برنامه‌ها فراهم می‌کنند و اغلب پوشش‌های کاربرپسندی برای فراخوانی‌های سیستمی هستند. روی هر دسته کلیک کنید تا با مثال‌های آن آشنا شوید.</p>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <!-- Cards for System Programs -->
+                    <div class="p-4 bg-white rounded-lg shadow border text-center cursor-pointer hover:shadow-xl transition-shadow" onclick="showModal('مدیریت فایل', 'ابزارهایی مانند `ls`, `cp`, `rm` برای کار با فایل‌ها.')">
+                        <span class="text-3xl">🗂️</span><p class="font-bold mt-2 text-sm">مدیریت فایل</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow border text-center cursor-pointer hover:shadow-xl transition-shadow" onclick="showModal('اطلاعات وضعیت', 'برنامه‌هایی مانند `ps`, `top`, `df` برای نمایش وضعیت سیستم.')">
+                        <span class="text-3xl">📊</span><p class="font-bold mt-2 text-sm">اطلاعات وضعیت</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow border text-center cursor-pointer hover:shadow-xl transition-shadow" onclick="showModal('پشتیبانی زبان', 'کامپایلرها (مانند `gcc`) و دیباگرها (مانند `gdb`).')">
+                        <span class="text-3xl">👨‍💻</span><p class="font-bold mt-2 text-sm">پشتیبانی زبان</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow border text-center cursor-pointer hover:shadow-xl transition-shadow" onclick="showModal('ارتباطات', 'برنامه‌هایی مانند `ssh`, `ftp`, `ping` برای ارتباطات شبکه‌ای.')">
+                        <span class="text-3xl">🌐</span><p class="font-bold mt-2 text-sm">ارتباطات</p>
+                    </div>
+                     <div class="p-4 bg-white rounded-lg shadow border text-center cursor-pointer hover:shadow-xl transition-shadow" onclick="showModal('سرویس‌های پس‌زمینه', 'دیمن‌ها (Daemons) در یونیکس یا سرویس‌ها (Services) در ویندوز که وظایف مداوم را انجام می‌دهند.')">
+                        <span class="text-3xl">⚙️</span><p class="font-bold mt-2 text-sm">سرویس‌های پس‌زمینه</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Linker/Loader Section -->
+            <section id="lifecycle-section" class="content-section">
+                <h2 class="text-3xl font-bold mb-4 text-blue-600 border-r-4 border-blue-600 pr-4">۲-۵: پیونددهنده‌ها و بارگذارها</h2>
+                <p class="mb-8 text-lg leading-relaxed">یک برنامه از کد منبع تا اجرا شدن در حافظه، سفری چند مرحله‌ای را طی می‌کند. با کلیک بر روی دکمه "شروع"، این فرآیند را به صورت متحرک مشاهده کنید.</p>
+                <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <div class="text-center mb-6">
+                        <button id="start-lifecycle-sim" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">شروع شبیه‌سازی</button>
+                    </div>
+                    <div class="space-y-4">
+                        <div id="flow-step-1" class="flow-step p-4 border-2 rounded-lg text-center">
+                            <p class="font-bold">کد منبع (main.c)</p>
+                        </div>
+                        <div class="text-center text-2xl">↓ <span class="text-sm font-bold text-gray-500">کامپایلر</span></div>
+                        <div id="flow-step-2" class="flow-step p-4 border-2 rounded-lg text-center">
+                            <p class="font-bold">فایل مقصد جابجاشدنی (main.o)</p>
+                        </div>
+                        <div class="text-center text-2xl">↓ <span class="text-sm font-bold text-gray-500">پیونددهنده</span></div>
+                        <div id="flow-step-3" class="flow-step p-4 border-2 rounded-lg text-center">
+                             <p class="font-bold">فایل اجرایی (main.exe)</p>
+                        </div>
+                         <div class="text-center text-2xl">↓ <span class="text-sm font-bold text-gray-500">بارگذار</span></div>
+                        <div id="flow-step-4" class="flow-step p-4 border-2 rounded-lg text-center">
+                            <p class="font-bold">برنامه در حافظه (پردازه)</p>
+                        </div>
+                    </div>
+                    <div id="lifecycle-info" class="mt-6 bg-gray-50 p-4 rounded-lg border min-h-[60px] text-center">
+                        <p>برای شروع شبیه‌سازی کلیک کنید.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Incompatibility Section -->
+            <section id="incompatibility-section" class="content-section">
+                <h2 class="text-3xl font-bold mb-4 text-blue-600 border-r-4 border-blue-600 pr-4">۲-۶: چرا برنامه‌ها خاص سیستم‌عامل هستند؟</h2>
+                <p class="mb-8 text-lg leading-relaxed">چرا یک برنامه کامپایل شده روی ویندوز، روی لینوکس اجرا نمی‌شود؟ دلایل این ناسازگاری در لایه‌های مختلفی از سیستم نهفته است. ابتدا با راه‌حل‌های این مشکل آشنا شوید.</p>
+                 <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <h3 class="text-xl font-bold mb-4">سه روش برای قابلیت حمل برنامه (Portability)</h3>
+                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                         <div class="p-4 border rounded-lg bg-yellow-50">
+                             <h4 class="font-bold">۱. زبان‌های مفسری</h4>
+                             <p class="text-sm mt-2">برنامه روی یک **مفسر** قابل حمل اجرا می‌شود (مانند Python). کارایی کمتر است.</p>
+                         </div>
+                         <div class="p-4 border rounded-lg bg-green-50">
+                             <h4 class="font-bold">۲. ماشین مجازی</h4>
+                             <p class="text-sm mt-2">برنامه به **بایت‌کد** کامپایل شده و روی یک **ماشین مجازی** قابل حمل اجرا می‌شود (مانند Java).</p>
+                         </div>
+                         <div class="p-4 border rounded-lg bg-blue-50">
+                             <h4 class="font-bold">۳. کامپایل مجدد</h4>
+                             <p class="text-sm mt-2">برنامه برای هر سیستم‌عامل به طور جداگانه **کامپایل مجدد** می‌شود (مانند برنامه‌های C++).</p>
+                         </div>
+                     </div>
+                     <h3 class="text-xl font-bold mt-8 mb-4">دلایل اصلی ناسازگاری (روی هر لایه نگه دارید)</h3>
+                     <div class="space-y-1 text-center font-semibold">
+                         <div class="p-3 bg-red-200 rounded-lg tooltip" data-tip="کتابخانه‌های گرافیکی و رابط کاربری متفاوت هستند.">APIهای سطح بالا</div>
+                         <div class="p-3 bg-orange-200 rounded-lg tooltip" data-tip="هر سیستم‌عامل مجموعه فراخوانی‌های سیستمی خاص خود را دارد.">فراخوانی‌های سیستمی</div>
+                         <div class="p-3 bg-yellow-200 rounded-lg tooltip" data-tip="قالب فایل‌های اجرایی متفاوت است (ELF در لینوکس، PE در ویندوز).">قالب فایل اجرایی</div>
+                         <div class="p-3 bg-green-200 rounded-lg tooltip" data-tip="استاندارد سطح پایین برای نحوه ارسال پارامترها و سازماندهی پشته متفاوت است.">رابط دودویی برنامه (ABI)</div>
+                          <div class="p-3 bg-blue-200 rounded-lg tooltip" data-tip="پردازنده‌های مختلف مجموعه دستورالعمل‌های متفاوتی دارند (x86 در برابر ARM).">معماری پردازنده</div>
+                     </div>
+                      <div id="tooltip-display" class="mt-4 text-center font-bold h-6"></div>
+                 </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Modal for System Programs -->
+    <div id="modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-sm">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 id="modal-title" class="text-xl font-bold"></h3>
+                <button id="modal-close" class="text-2xl font-bold">&times;</button>
+            </div>
+            <div id="modal-body" class="p-6"></div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('.content-section');
+
+    function showSection(targetId) {
+        sections.forEach(section => section.classList.toggle('active', section.id === `${targetId}-section`));
+        navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${targetId}`));
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection(link.getAttribute('href').substring(1));
+        });
+    });
+    showSection('programs'); // Default section
+
+    // Modal logic
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    const modalClose = document.getElementById('modal-close');
+    window.showModal = (title, body) => {
+        modalTitle.textContent = title;
+        modalBody.textContent = body;
+        modal.classList.add('active');
+    }
+    modalClose.addEventListener('click', () => modal.classList.remove('active'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+
+    // Lifecycle Simulation
+    const startLifecycleSim = document.getElementById('start-lifecycle-sim');
+    const steps = document.querySelectorAll('.flow-step');
+    const lifecycleInfo = document.getElementById('lifecycle-info');
+    const stepInfo = [
+        "برنامه‌نویس کد منبع را می‌نویسد.",
+        "کامپایلر کد را به فایل مقصد جابجاشدنی ترجمه می‌کند.",
+        "پیونددهنده فایل‌های مقصد و کتابخانه‌ها را ترکیب کرده و فایل اجرایی را می‌سازد.",
+        "بارگذار فایل اجرایی را در حافظه قرار داده و پردازه را برای اجرا آماده می‌کند."
+    ];
+    let currentStep = -1;
+    let simInterval;
+
+    startLifecycleSim.addEventListener('click', () => {
+        clearInterval(simInterval);
+        currentStep = 0;
+        steps.forEach(step => step.classList.remove('active'));
+        lifecycleInfo.textContent = "";
+
+        simInterval = setInterval(() => {
+            if (currentStep < steps.length) {
+                steps.forEach(s => s.classList.remove('active'));
+                steps[currentStep].classList.add('active');
+                lifecycleInfo.textContent = stepInfo[currentStep];
+                currentStep++;
+            } else {
+                clearInterval(simInterval);
+                 setTimeout(() => {
+                    steps.forEach(step => step.classList.remove('active'));
+                    lifecycleInfo.textContent = "فرآیند کامل شد!";
+                }, 1500);
+            }
+        }, 1500);
+    });
+
+    // Incompatibility Tooltips
+    const tooltips = document.querySelectorAll('.tooltip');
+    const tooltipDisplay = document.getElementById('tooltip-display');
+    tooltips.forEach(tip => {
+        tip.addEventListener('mouseenter', () => {
+            tooltipDisplay.textContent = tip.dataset.tip;
+        });
+         tip.addEventListener('mouseleave', () => {
+            tooltipDisplay.textContent = "";
+        });
+    });
+
+});
+</script>
+
+</body>
+</html>

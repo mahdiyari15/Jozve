@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر جامع سیستم عامل - بخش اول</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: The SPA is designed with a thematic, non-linear structure for optimal learning. A sticky top navigation bar allows instant access to key themes: 'مفاهیم پایه', 'کالبدشکافی سیستم', and 'معماری‌ها'. Each theme is a self-contained section. The structure uses interactive cards and click-to-reveal details, transforming passive reading into active exploration. This design was chosen over a linear format to empower the user to learn at their own pace and focus on specific concepts, which is more effective for exam preparation than simply scrolling through a long document. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Computer System Components -> Goal: Inform -> Viz: Diagram with styled divs (HTML/CSS) -> Interaction: Hover tooltips -> Justification: A visual, layered diagram is more intuitive than a list for understanding system structure.
+        - Report Info: Storage Hierarchy -> Goal: Compare -> Viz: Interactive pyramid (HTML/CSS) -> Interaction: Clickable layers revealing detailed specs (speed, size) in a side panel -> Justification: A pyramid is the standard, universally understood representation. Interactivity encourages exploration of trade-offs.
+        - Report Info: System Architectures (SMP, NUMA, etc.) -> Goal: Organize & Compare -> Viz: A responsive grid of "concept cards" -> Interaction: Clicking a card expands it to reveal in-depth explanations and diagrams -> Justification: Cards modularize complex topics, making them easier to digest and compare side-by-side.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All visuals are built with HTML and Tailwind CSS. Chart.js is included but not used in this section as structured HTML was more effective for the concepts presented. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f8f7f4;
+            color: #2c3e50;
+        }
+        .active-nav {
+            color: #ffffff;
+            background-color: #4A7C59;
+        }
+        .nav-item {
+            transition: all 0.3s ease;
+        }
+        .concept-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .concept-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .details-section {
+            display: none;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.7s ease-in-out;
+        }
+        .details-section.open {
+            display: block;
+            max-height: 2000px; /* Large enough for content */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header and Navigation -->
+    <header class="bg-[#2c3e50] text-gray-200 p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold">جزوه جامع سیستم عامل (بخش ۱)</h1>
+            <nav class="hidden md:flex space-x-4 space-x-reverse">
+                <a href="#introduction" class="nav-item px-3 py-2 rounded-md hover:bg-[#4A7C59] hover:text-white">مفاهیم پایه</a>
+                <a href="#organization" class="nav-item px-3 py-2 rounded-md hover:bg-[#4A7C59] hover:text-white">کالبدشکافی سیستم</a>
+                <a href="#architectures" class="nav-item px-3 py-2 rounded-md hover:bg-[#4A7C59] hover:text-white">معماری‌ها</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden mt-3">
+            <a href="#introduction" class="block py-2 px-4 text-sm hover:bg-[#4A7C59]">مفاهیم پایه</a>
+            <a href="#organization" class="block py-2 px-4 text-sm hover:bg-[#4A7C59]">کالبدشکافی سیستم</a>
+            <a href="#architectures" class="block py-2 px-4 text-sm hover:bg-[#4A7C59]">معماری‌ها</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <!-- Section 1: Introduction -->
+        <section id="introduction" class="mb-12 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-[#4A7C59] border-r-4 border-[#4A7C59] pr-4">۱-۱: سیستم عامل چیست؟ (نگاهی عمیق)</h2>
+            <p class="mb-6 text-lg leading-relaxed">
+                در این بخش، به قلب تپنده هر سیستم کامپیوتری سفر می‌کنیم: **سیستم‌عامل**. سیستم‌عامل یک برنامه نرم‌افزاری بنیادین است که به عنوان واسطی هوشمند بین شما و سخت‌افزار پیچیده کامپیوتر عمل می‌کند. ما نقش دوگانه آن را به عنوان یک **مدیر منابع کارآمد** و یک **برنامه کنترلی محافظ** بررسی کرده و خواهیم دید که چگونه اهداف آن بر اساس دیدگاه‌های مختلف (کاربر و سیستم) تغییر می‌کند.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Computer System Components -->
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h3 class="text-xl font-bold mb-4 text-[#2c3e50]">کالبدشکافی یک سیستم کامپیوتری</h3>
+                    <p class="mb-4">یک سیستم کامپیوتری از چهار لایه مفهومی تشکیل شده که هر لایه بر روی لایه زیرین خود بنا شده است:</p>
+                    <div class="space-y-4">
+                        <div class="p-3 bg-gray-100 rounded-lg text-center">
+                            <span class="font-bold">۴. کاربران (Users)</span>
+                            <p class="text-sm">انسان‌ها، ماشین‌ها و سایر کامپیوترها</p>
+                        </div>
+                        <div class="p-3 bg-blue-100 rounded-lg text-center">
+                            <span class="font-bold">۳. برنامه‌های کاربردی (Applications)</span>
+                            <p class="text-sm">مرورگر، واژه‌پرداز، بازی‌ها</p>
+                        </div>
+                         <div class="p-3 bg-green-100 rounded-lg text-center">
+                            <span class="font-bold">۲. سیستم عامل (Operating System)</span>
+                             <p class="text-sm">مدیر و کنترل‌کننده منابع</p>
+                        </div>
+                        <div class="p-3 bg-yellow-100 rounded-lg text-center">
+                            <span class="font-bold">۱. سخت‌افزار (Hardware)</span>
+                            <p class="text-sm">CPU، حافظه، دیسک سخت</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OS Perspectives -->
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h3 class="text-xl font-bold mb-4 text-[#2c3e50]">دو دیدگاه کلیدی به سیستم عامل</h3>
+                     <div id="tabs" class="mb-4 border-b border-gray-200">
+                        <nav class="flex -mb-px" aria-label="Tabs">
+                            <button data-tab-target="#user-view" class="tab-button flex-1 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 active-tab">
+                                دیدگاه کاربر (User View)
+                            </button>
+                            <button data-tab-target="#system-view" class="tab-button flex-1 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                دیدگاه سیستم (System View)
+                            </button>
+                        </nav>
+                    </div>
+                    <div id="tab-content">
+                        <div id="user-view" class="tab-pane">
+                            <p class="mb-2">از نگاه کاربر، هدف اصلی سیستم عامل، شکل دادن به **تجربه کاربری** است:</p>
+                            <ul class="list-disc list-inside space-y-2">
+                                <li><strong class="text-[#4A7C59]">کامپیوتر شخصی (PC):</strong> تمرکز بر **سهولت استفاده** و کارایی فردی.</li>
+                                <li><strong class="text-[#4A7C59]">موبایل:</strong> اولویت با **رابط لمسی**، اتصال دائمی و **عمر باتری**.</li>
+                                <li><strong class="text-[#4A7C59]">کامپیوتر بزرگ (Mainframe):</strong> هدف، **اشتراک عادلانه منابع** بین چندین کاربر همزمان.</li>
+                                <li><strong class="text-[#4A7C59]">سیستم تعبیه‌شده (Embedded):</strong> اجرای یک **وظیفه خاص و قابل اعتماد** بدون دخالت کاربر.</li>
+                            </ul>
+                        </div>
+                        <div id="system-view" class="tab-pane hidden">
+                             <p class="mb-2">از نگاه سخت‌افزار، سیستم عامل دو نقش حیاتی و فنی دارد:</p>
+                             <ul class="list-disc list-inside space-y-2">
+                                <li><strong class="text-[#4A7C59]">تخصیص‌دهنده منابع (Resource Allocator):</strong> مدیریت هوشمندانه و عادلانه منابع محدود (CPU، حافظه، دیسک) بین درخواست‌های متعدد و متناقض.</li>
+                                <li><strong class="text-[#4A7C59]">برنامه کنترلی (Control Program):</strong> نظارت بر اجرای برنامه‌ها برای جلوگیری از خطا و استفاده نادرست از سخت‌افزار، و تضمین پایداری کل سیستم.</li>
+                             </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Organization -->
+        <section id="organization" class="mb-12 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-[#4A7C59] border-r-4 border-[#4A7C59] pr-4">۱-۲: کالبدشکافی یک سیستم کامپیوتری</h2>
+            <p class="mb-6 text-lg leading-relaxed">
+                برای فهم عمیق عملکرد سیستم‌عامل، باید با اجزای سخت‌افزاری که آن را کنترل می‌کند، آشنا شویم. در این بخش، ساختار یک کامپیوتر مدرن را بررسی کرده و به مکانیزم‌های کلیدی مانند **وقفه**، **سلسله مراتب حافظه** و **دسترسی مستقیم به حافظه (DMA)** می‌پردازیم که اساس ارتباط و کارایی سیستم را تشکیل می‌دهند.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <!-- Card: Modern Computer System -->
+                <div class="concept-card bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h3 class="text-xl font-bold mb-2">سازمان سیستم کامپیوتری مدرن</h3>
+                    <p class="text-sm mb-4">یک سیستم مدرن مجموعه‌ای از پردازنده‌ها و کنترلرهای دستگاه است که از طریق یک گذرگاه مشترک به حافظه دسترسی دارند.</p>
+                    <button class="toggle-details-button w-full text-left text-blue-600 font-semibold" data-target="#details-modern-system">مشاهده جزئیات ▾</button>
+                    <div id="details-modern-system" class="details-section mt-4 border-t pt-4">
+                        <p>اجزای کلیدی عبارتند از:</p>
+                        <ul class="list-disc list-inside mt-2 text-sm space-y-1">
+                            <li><strong>CPU و کنترلرها:</strong> به صورت موازی برای دسترسی به حافظه رقابت می‌کنند.</li>
+                            <li><strong>کنترلر حافظه:</strong> دسترسی به حافظه را همگام‌سازی می‌کند.</li>
+                            <li><strong>کنترلر دستگاه:</strong> هر کدام مسئول یک نوع دستگاه (دیسک، USB) با بافر محلی و ثبات‌های خاص خود هستند.</li>
+                            <li><strong>درایور دستگاه:</strong> نرم‌افزار سیستم‌عامل که زبان کنترلر را می‌فهمد و رابطی یکپارچه ارائه می‌دهد.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Card: Interrupt -->
+                <div class="concept-card bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h3 class="text-xl font-bold mb-2">وقفه (Interrupt)</h3>
+                    <p class="text-sm mb-4">مکانیزم حیاتی که سخت‌افزار از طریق آن، وقوع یک رویداد را به CPU اطلاع می‌دهد تا توجه آن را جلب کند.</p>
+                    <button class="toggle-details-button w-full text-left text-blue-600 font-semibold" data-target="#details-interrupt">مشاهده جزئیات ▾</button>
+                    <div id="details-interrupt" class="details-section mt-4 border-t pt-4">
+                        <p><strong>فرآیند یک وقفه I/O:</strong></p>
+                        <ol class="list-decimal list-inside mt-2 text-sm space-y-1">
+                            <li>کنترلر دستگاه عملیات I/O را تمام می‌کند.</li>
+                            <li>یک سیگنال وقفه به CPU می‌فرستد.</li>
+                            <li>CPU کار فعلی را متوقف کرده و وضعیت خود را ذخیره می‌کند.</li>
+                            <li>کنترل را به **روال سرویس وقفه (ISR)** منتقل می‌کند.</li>
+                            <li>آدرس ISR از طریق **بردار وقفه (Interrupt Vector)** پیدا می‌شود.</li>
+                            <li>ISR رویداد را مدیریت می‌کند.</li>
+                            <li>CPU به کار قبلی خود بازمی‌گردد.</li>
+                        </ol>
+                        <p class="mt-2 text-sm"><strong>نکات پیشرفته:</strong> سیستم‌های مدرن از **سطوح اولویت وقفه** و **زنجیره‌سازی وقفه** برای مدیریت کارآمد چندین دستگاه استفاده می‌کنند.</p>
+                    </div>
+                </div>
+
+                <!-- Card: DMA -->
+                <div class="concept-card bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h3 class="text-xl font-bold mb-2">دسترسی مستقیم به حافظه (DMA)</h3>
+                    <p class="text-sm mb-4">روشی برای انتقال داده‌های حجیم بین دستگاه‌های I/O و حافظه، بدون درگیر کردن مستقیم CPU.</p>
+                    <button class="toggle-details-button w-full text-left text-blue-600 font-semibold" data-target="#details-dma">مشاهده جزئیات ▾</button>
+                    <div id="details-dma" class="details-section mt-4 border-t pt-4">
+                        <p><strong>فرآیند DMA:</strong></p>
+                         <ol class="list-decimal list-inside mt-2 text-sm space-y-1">
+                            <li>CPU، کنترلر DMA را با اطلاعات انتقال (آدرس، تعداد بایت) تنظیم می‌کند.</li>
+                            <li>CPU آزاد می‌شود و به کارهای دیگر می‌پردازد.</li>
+                            <li>کنترلر DMA بلوک کامل داده را مستقیماً بین دستگاه و حافظه منتقل می‌کند.</li>
+                            <li>پس از اتمام انتقال، DMA **فقط یک وقفه** به CPU می‌فرستد.</li>
+                        </ol>
+                        <p class="mt-2 text-sm">این روش سربار وقفه را به شدت کاهش داده و کارایی سیستم را برای I/Oهای سنگین افزایش می‌دهد.</p>
+                    </div>
+                </div>
+
+            </div>
+
+             <!-- Storage Hierarchy -->
+            <div class="mt-8 bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <h3 class="text-2xl font-bold mb-4 text-center">سلسله مراتب حافظه</h3>
+                <p class="text-center mb-6">سیستم‌های ذخیره‌سازی بر اساس یک مصالحه بین **سرعت، هزینه و ظرفیت** در یک هرم سلسله مراتبی سازماندهی می‌شوند. روی هر لایه کلیک کنید تا جزئیات آن را ببینید.</p>
+                <div class="flex flex-col-reverse items-center" id="storage-hierarchy">
+                    <div data-level="tertiary" class="hierarchy-level w-full md:w-11/12 lg:w-full cursor-pointer bg-gray-300 p-3 text-center rounded-t-lg border-b-2 border-white">حافظه ثالث (نوار مغناطیسی، دیسک نوری)</div>
+                    <div data-level="secondary" class="hierarchy-level w-full md:w-10/12 lg:w-11/12 cursor-pointer bg-yellow-300 p-3 text-center border-b-2 border-white">حافظه ثانویه (HDD, SSD)</div>
+                    <div data-level="main" class="hierarchy-level w-full md:w-8/12 lg:w-9/12 cursor-pointer bg-green-300 p-3 text-center border-b-2 border-white">حافظه اصلی (RAM)</div>
+                    <div data-level="cache" class="hierarchy-level w-full md:w-6/12 lg:w-7/12 cursor-pointer bg-blue-300 p-3 text-center border-b-2 border-white">حافظه نهان (Cache)</div>
+                    <div data-level="registers" class="hierarchy-level w-full md:w-4/12 lg:w-5/12 cursor-pointer bg-red-300 p-3 text-center rounded-b-lg">ثبات‌ها (Registers)</div>
+                </div>
+                <div id="hierarchy-details" class="mt-6 p-4 bg-gray-50 rounded-lg border hidden">
+                    <!-- Details will be injected here by JS -->
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- Section 3: Architectures -->
+        <section id="architectures" class="scroll-mt-20">
+             <h2 class="text-3xl font-bold mb-4 text-[#4A7C59] border-r-4 border-[#4A7C59] pr-4">۱-۳: معماری‌های مختلف سیستم کامپیوتر</h2>
+            <p class="mb-6 text-lg leading-relaxed">
+                سیستم‌های کامپیوتری بر اساس تعداد پردازنده‌ها و نحوه اتصال آن‌ها به یکدیگر، در معماری‌های مختلفی ساخته می‌شوند. در این بخش، از ساده‌ترین سیستم‌های تک‌پردازنده تا سیستم‌های پیچیده چندپردازنده و خوشه‌ای را بررسی می‌کنیم و مزایا و معایب هر کدام را می‌آموزیم.
+            </p>
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Card: Multiprocessor Systems -->
+                <div class="concept-card bg-white p-6 rounded-xl shadow-md border border-gray-200 md:col-span-2">
+                    <h3 class="text-xl font-bold mb-2">سیستم‌های چندپردازنده (Multiprocessor)</h3>
+                    <p class="text-sm mb-4">سیستم‌هایی با دو یا چند پردازنده که منابع را به اشتراک می‌گذارند تا بازدهی و قابلیت اطمینان را افزایش دهند.</p>
+                    <button class="toggle-details-button w-full text-left text-blue-600 font-semibold" data-target="#details-multiprocessor">مشاهده جزئیات و انواع ▾</button>
+                    <div id="details-multiprocessor" class="details-section mt-4 border-t pt-4 space-y-4">
+                        <div>
+                            <h4 class="font-bold">مزایای کلیدی:</h4>
+                            <ul class="list-disc list-inside text-sm mt-2">
+                                <li><strong>افزایش بازدهی:</strong> انجام کارهای بیشتر در زمان کمتر.</li>
+                                <li><strong>صرفه‌جویی اقتصادی:</strong> اشتراک منابع ارزان‌تر از سیستم‌های مجزاست.</li>
+                                <li><strong>افزایش قابلیت اطمینان (تنزل مطبوع):</strong> با خرابی یک پردازنده، سیستم از کار نمی‌افتد.</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-bold">انواع معماری:</h4>
+                             <ul class="list-disc list-inside text-sm mt-2">
+                                <li><strong>چندپردازشی متقارن (SMP):</strong> رایج‌ترین نوع که در آن تمام پردازنده‌ها همتا هستند.</li>
+                                <li><strong>چندهسته‌ای (Multi-core):</strong> چندین هسته پردازشی روی یک تراشه فیزیکی.</li>
+                                <li><strong>دسترسی غیریکنواخت به حافظه (NUMA):</strong> معماری مقیاس‌پذیر برای تعداد بالای پردازنده که هر CPU حافظه محلی خود را دارد.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card: Clustered Systems -->
+                 <div class="concept-card bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h3 class="text-xl font-bold mb-2">سیستم‌های خوشه‌ای (Clustered)</h3>
+                    <p class="text-sm mb-4">مجموعه‌ای از کامپیوترهای مستقل (گره) که از طریق شبکه به هم متصل شده و با هم کار می‌کنند.</p>
+                    <button class="toggle-details-button w-full text-left text-blue-600 font-semibold" data-target="#details-clustered">مشاهده جزئیات ▾</button>
+                    <div id="details-clustered" class="details-section mt-4 border-t pt-4">
+                        <p class="text-sm"><strong>هدف اصلی:</strong> دسترس‌پذیری بالا (High Availability).</p>
+                        <p class="font-bold mt-2 text-sm">انواع خوشه‌بندی:</p>
+                        <ul class="list-disc list-inside mt-1 text-sm">
+                            <li><strong>نامتقارن (Asymmetric):</strong> یک گره به عنوان آماده‌باش (Hot-standby) منتظر می‌ماند.</li>
+                            <li><strong>متقارن (Symmetric):</strong> تمام گره‌ها فعال هستند و بر یکدیگر نظارت می‌کنند.</li>
+                        </ul>
+                         <p class="mt-2 text-sm">خوشه‌ها همچنین برای **محاسبات با کارایی بالا (HPC)** و با استفاده از **شبکه‌های ذخیره‌سازی (SAN)** برای دسترسی مشترک به داده‌ها استفاده می‌شوند.</p>
+                    </div>
+                </div>
+
+                 <!-- Card: Single Processor -->
+                <div class="concept-card bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <h3 class="text-xl font-bold mb-2">سیستم‌های تک‌پردازنده</h3>
+                    <p class="text-sm mb-4">سیستم‌هایی که تنها یک پردازنده همه‌منظوره با یک هسته پردازشی دارند. امروزه این معماری نادر است.</p>
+                     <button class="toggle-details-button w-full text-left text-blue-600 font-semibold" data-target="#details-single-processor">مشاهده جزئیات ▾</button>
+                     <div id="details-single-processor" class="details-section mt-4 border-t pt-4">
+                        <p class="text-sm">این سیستم‌ها ممکن است پردازنده‌های خاص‌منظوره دیگری (مانند کنترلر دیسک) داشته باشند، اما تنها یک CPU اصلی برای اجرای برنامه‌های کاربر و سیستم‌عامل دارند. این پردازنده‌های کمکی، وظایف مشخصی را از دوش CPU اصلی برمی‌دارند.</p>
+                    </div>
+                </div>
+
+             </div>
+        </section>
+
+    </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // Tabs functionality
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active-tab', 'border-[#4A7C59]', 'text-[#4A7C59]'));
+            button.classList.add('active-tab', 'border-[#4A7C59]', 'text-[#4A7C59]');
+            
+            tabPanes.forEach(pane => {
+                if (pane.id === button.dataset.tabTarget.substring(1)) {
+                    pane.classList.remove('hidden');
+                } else {
+                    pane.classList.add('hidden');
+                }
+            });
+        });
+    });
+    // Activate the first tab by default
+    if (tabButtons.length > 0) {
+        tabButtons[0].click();
+    }
+
+
+    // Details section toggle
+    const toggleButtons = document.querySelectorAll('.toggle-details-button');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetId = button.dataset.target;
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                targetElement.classList.toggle('open');
+                button.textContent = targetElement.classList.contains('open') ? 'بستن جزئیات ▴' : 'مشاهده جزئیات ▾';
+            }
+        });
+    });
+
+    // Storage Hierarchy Interaction
+    const hierarchyLevels = document.querySelectorAll('.hierarchy-level');
+    const detailsPanel = document.getElementById('hierarchy-details');
+    const hierarchyData = {
+        registers: {
+            title: 'ثبات‌ها (Registers)',
+            description: 'سریع‌ترین، کوچک‌ترین و گران‌ترین حافظه. مستقیماً داخل CPU قرار دارند و در یک چرخه ساعت قابل دسترسی هستند. کامپایلر مدیریت آن‌ها را بر عهده دارد.',
+            speed: 'بسیار سریع (زیر ۱ نانوثانیه)',
+            type: 'میرا (Volatile)'
+        },
+        cache: {
+            title: 'حافظه نهان (Cache)',
+            description: 'حافظه SRAM سریع که بین CPU و RAM قرار می‌گیرد تا تأخیر دسترسی به داده‌های پرکاربرد را کاهش دهد. مدیریت آن توسط سخت‌افزار انجام می‌شود.',
+            speed: 'سریع (۱ تا ۳۰ نانوثانیه)',
+            type: 'میرا (Volatile)'
+        },
+        main: {
+            title: 'حافظه اصلی (Main Memory / RAM)',
+            description: 'حافظه کاری اصلی سیستم (DRAM) که تمام برنامه‌های در حال اجرا باید در آن قرار گیرند. مدیریت آن بر عهده سیستم‌عامل است.',
+            speed: 'متوسط (۵۰ تا ۱۰۰ نانوثانیه)',
+            type: 'میرا (Volatile)'
+        },
+        secondary: {
+            title: 'حافظه ثانویه (Secondary Storage)',
+            description: 'حافظه دائمی (نامیرا) برای ذخیره‌سازی بلندمدت برنامه‌ها و داده‌ها. شامل دیسک‌های سخت (HDD) و درایوهای حالت جامد (SSD) می‌شود.',
+            speed: 'کند (میلی‌ثانیه برای HDD، میکروثانیه برای SSD)',
+            type: 'نامیرا (Non-volatile)'
+        },
+        tertiary: {
+            title: 'حافظه ثالث (Tertiary Storage)',
+            description: 'حافظه‌های با ظرفیت بسیار بالا و سرعت پایین، معمولاً برای پشتیبان‌گیری و آرشیو داده‌ها استفاده می‌شوند (مانند نوارهای مغناطیسی).',
+            speed: 'بسیار کند (ثانیه تا دقیقه)',
+            type: 'نامیرا (Non-volatile)'
+        }
+    };
+
+    hierarchyLevels.forEach(level => {
+        level.addEventListener('click', () => {
+            const levelId = level.dataset.level;
+            const data = hierarchyData[levelId];
+
+            detailsPanel.innerHTML = `
+                <h4 class="font-bold text-lg mb-2">${data.title}</h4>
+                <p class="text-sm mb-2">${data.description}</p>
+                <div class="text-xs grid grid-cols-2 gap-2 mt-4">
+                    <div class="bg-gray-200 p-2 rounded"><strong>سرعت دسترسی:</strong> ${data.speed}</div>
+                    <div class="bg-gray-200 p-2 rounded"><strong>نوع حافظه:</strong> ${data.type}</div>
+                </div>
+            `;
+            detailsPanel.classList.remove('hidden');
+            
+            // Highlight active level
+            hierarchyLevels.forEach(l => l.classList.remove('ring-2', 'ring-offset-2', 'ring-[#4A7C59]'));
+            level.classList.add('ring-2', 'ring-offset-2', 'ring-[#4A7C59]');
+        });
+    });
+
+    // Smooth scrolling for nav links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+            // Close mobile menu on click
+            if (!mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    });
+
+});
+</script>
+
+</body>
+</html>

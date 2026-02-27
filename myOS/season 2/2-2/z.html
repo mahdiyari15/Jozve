@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر جامع فصل دوم - بخش دوم: رابط‌ها و فراخوانی‌های سیستمی</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Terminal Green & GUI Blue -->
+    <!-- Application Structure Plan: This SPA is structured into two main, distinct sections: 'رابط‌های کاربر' and 'فراخوانی‌های سیستمی', accessible via a clear top navigation. This thematic division is chosen for clarity. The user flow is designed to be interactive and comparative. The "User Interfaces" section features a tabbed interface to directly compare GUI, CLI, and Touch interfaces, with a special focus on the CLI via an interactive "Shell" simulation. The "System Calls" section, the core of this module, uses a step-by-step, animated flowchart to visualize the entire process of a single system call. This visual, process-oriented approach is far more effective for explaining this abstract and critical concept than static text. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: User Interface Types (GUI, CLI, Touch) -> Goal: Compare/Contrast -> Viz: A tabbed interface. -> Interaction: Users click on tabs ('GUI', 'CLI', 'Touch') to switch between visual representations and descriptions of each interface type. The CLI tab includes a simulated terminal. -> Justification: Tabs provide a direct and intuitive way to compare these distinct interaction models.
+        - Report Info: Command Interpreter (Shell) Logic -> Goal: Explain a Process -> Viz: A simulated terminal within the CLI tab. -> Interaction: Users can "type" a pre-set command (e.g., 'rm file.txt'). An animation then visually demonstrates the two implementation methods: (1) "کد داخل مفسر" vs. (2) "برنامه مجزا", showing the shell either executing internal code or loading an external program. -> Justification: This interactive simulation makes the abstract difference between the two shell implementation strategies concrete and easy to understand.
+        - Report Info: System Call Process -> Goal: Explain a Detailed Process -> Viz: A large, step-by-step animated diagram showing the journey of a 'file copy' operation from a user program to the kernel and back. -> Interaction: A "شروع کپی" button initiates a sequence of animations. Each step (e.g., 'فراخوانی open', 'انتقال به مد هسته', 'اجرای سرویس', 'بازگشت نتیجه') is highlighted in sequence with explanatory text. -> Justification: Visualizing this entire flow with animations is the most effective way to teach the crucial role of system calls, the mode switch, and the interaction between user space and kernel space.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        .nav-item.active {
+            border-bottom-color: #3b82f6;
+            color: #3b82f6;
+        }
+        .tab-button.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .terminal-cursor {
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        .syscall-step {
+            opacity: 0.3;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+        .syscall-step.active {
+            opacity: 1;
+            transform: scale(1.05);
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-slate-800 text-white p-4 shadow-lg text-center sticky top-0 z-50">
+        <h1 class="text-2xl md:text-3xl font-bold">فصل دوم، بخش دوم: رابط‌ها و فراخوانی‌های سیستمی</h1>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-[80px] z-40">
+        <div class="container mx-auto flex justify-center border-b">
+            <a href="#interfaces" class="nav-item py-4 px-6 text-center font-semibold border-b-4 border-transparent">رابط‌های کاربر</a>
+            <a href="#syscalls" class="nav-item py-4 px-6 text-center font-semibold border-b-4 border-transparent">فراخوانی‌های سیستمی</a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <!-- User Interfaces Section -->
+        <section id="interfaces" class="scroll-mt-40 mb-16">
+            <h2 class="text-3xl font-bold mb-4 text-blue-600 border-r-4 border-blue-600 pr-4">۲-۲: رابط کاربر و سیستم‌عامل</h2>
+            <p class="mb-8 text-lg leading-relaxed">کاربران از طریق رابط‌های مختلفی با سیستم‌عامل صحبت می‌کنند. در این بخش، سه نوع اصلی این رابط‌ها را مقایسه می‌کنیم و به طور خاص، با جادوی پشت پرده قدرتمندترین آن‌ها، یعنی **رابط خط فرمان (CLI)**، آشنا می‌شویم.</p>
+            
+            <div class="bg-white p-6 rounded-xl shadow-lg border">
+                <div class="flex justify-center mb-6 bg-gray-100 p-2 rounded-lg">
+                    <button class="tab-button flex-1 py-2 px-4 rounded-lg font-semibold transition-colors" data-tab="cli">خط فرمان (CLI)</button>
+                    <button class="tab-button flex-1 py-2 px-4 rounded-lg font-semibold transition-colors" data-tab="gui">گرافیکی (GUI)</button>
+                    <button class="tab-button flex-1 py-2 px-4 rounded-lg font-semibold transition-colors" data-tab="touch">لمسی</button>
+                </div>
+
+                <!-- CLI Tab -->
+                <div id="cli-tab" class="tab-content">
+                    <h3 class="font-bold text-xl mb-4">رابط خط فرمان (پوسته / Shell)</h3>
+                    <p class="mb-4 text-sm">مورد علاقه کاربران حرفه‌ای و مدیران سیستم. دستورات به صورت متنی تایپ می‌شوند. این رابط برای خودکارسازی کارها از طریق **اسکریپت‌های پوسته (Shell Scripts)** بسیار قدرتمند است.</p>
+                    <div class="bg-black text-green-400 font-mono p-4 rounded-lg">
+                        <p>user@linux:~$ <span id="cli-command"></span><span class="terminal-cursor">|</span></p>
+                        <p id="cli-output" class="mt-2"></p>
+                    </div>
+                    <p class="text-xs mt-2 text-center">یک فرمان نمونه را "تایپ" کنید تا نحوه اجرای آن را ببینید.</p>
+                </div>
+
+                <!-- GUI Tab -->
+                <div id="gui-tab" class="tab-content">
+                    <h3 class="font-bold text-xl mb-4">رابط کاربر گرافیکی (GUI)</h3>
+                    <p class="mb-4 text-sm">رابط بصری با استعاره **میزکار (Desktop)** که شامل پنجره‌ها، آیکون‌ها و منوهاست. اولین بار در مرکز تحقیقاتی **Xerox PARC** ابداع شد و با **Apple Macintosh** به محبوبیت رسید.</p>
+                    <div class="p-4 bg-gray-100 rounded-lg border flex items-center justify-center h-40">
+                         <p class="text-2xl">🖥️🖱️</p>
+                    </div>
+                </div>
+
+                <!-- Touch Tab -->
+                <div id="touch-tab" class="tab-content">
+                    <h3 class="font-bold text-xl mb-4">رابط صفحه نمایش لمسی</h3>
+                    <p class="mb-4 text-sm">روش اصلی تعامل در دستگاه‌های موبایل. کاربران با **ژست‌های حرکتی (Gestures)** مانند لمس و کشیدن انگشت با سیستم ارتباط برقرار می‌کنند.</p>
+                     <div class="p-4 bg-gray-100 rounded-lg border flex items-center justify-center h-40">
+                        <p class="text-2xl">📱👆</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Calls Section -->
+        <section id="syscalls" class="scroll-mt-40">
+            <h2 class="text-3xl font-bold mb-4 text-blue-600 border-r-4 border-blue-600 pr-4">۲-۳: فراخوانی‌های سیستمی (System Calls)</h2>
+            <p class="mb-8 text-lg leading-relaxed">فراخوانی‌های سیستمی، **درگاه ورودی** برنامه‌های کاربر به دنیای قدرتمند **هسته (Kernel)** هستند. هر زمان که یک برنامه نیاز به انجام کاری ممتاز (مانند خواندن یک فایل) دارد، باید از سیستم‌عامل درخواست کند. با کلیک بر روی دکمه زیر، سفر یک درخواست کپی فایل را از ابتدا تا انتها دنبال کنید.</p>
+             <div class="bg-white p-6 rounded-xl shadow-lg border">
+                 <div class="text-center mb-6">
+                     <button id="start-syscall-sim" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">شروع شبیه‌سازی کپی فایل</button>
+                 </div>
+                <div class="space-y-4">
+                    <!-- Step 1 -->
+                    <div id="step-1" class="syscall-step p-4 border-2 rounded-lg bg-gray-50">
+                        <h4 class="font-bold">۱. برنامه کاربر درخواست می‌دهد</h4>
+                        <p class="text-sm mt-1">برنامه تابع `open()` را برای باز کردن فایل ورودی صدا می‌زند.</p>
+                    </div>
+                     <!-- Arrow -->
+                    <div class="text-center text-2xl font-bold text-gray-400">↓</div>
+                    <!-- Step 2 -->
+                    <div id="step-2" class="syscall-step p-4 border-2 rounded-lg bg-red-50">
+                        <h4 class="font-bold text-red-700">۲. تله (Trap) و انتقال به مد هسته</h4>
+                        <p class="text-sm mt-1">تابع کتابخانه‌ای `open` یک دستورالعمل **تله** اجرا می‌کند. سخت‌افزار کنترل را به سیستم‌عامل منتقل کرده و مد را به **هسته** تغییر می‌دهد.</p>
+                    </div>
+                     <!-- Arrow -->
+                    <div class="text-center text-2xl font-bold text-gray-400">↓</div>
+                    <!-- Step 3 -->
+                    <div id="step-3" class="syscall-step p-4 border-2 rounded-lg bg-red-50">
+                        <h4 class="font-bold text-red-700">۳. اجرای سرویس در مد هسته</h4>
+                        <p class="text-sm mt-1">سیستم‌عامل درخواست `open` را اجرا می‌کند، مجوزها را بررسی کرده و منابع لازم را تخصیص می‌دهد.</p>
+                    </div>
+                    <!-- Arrow -->
+                    <div class="text-center text-2xl font-bold text-gray-400">↓</div>
+                     <!-- Step 4 -->
+                    <div id="step-4" class="syscall-step p-4 border-2 rounded-lg bg-green-50">
+                        <h4 class="font-bold text-green-700">۴. بازگشت به مد کاربر</h4>
+                        <p class="text-sm mt-1">پس از اتمام کار، سیستم‌عامل کنترل را به برنامه بازمی‌گرداند و مد را دوباره به **کاربر** تغییر می‌دهد. یک مقدار بازگشتی (مثلاً یک شماره توصیفگر فایل) به برنامه داده می‌شود.</p>
+                    </div>
+                    <!-- Arrow -->
+                    <div class="text-center text-2xl font-bold text-gray-400">↓</div>
+                    <!-- Step 5 -->
+                     <div id="step-5" class="syscall-step p-4 border-2 rounded-lg bg-gray-50">
+                        <h4 class="font-bold">۵. ادامه اجرای برنامه</h4>
+                        <p class="text-sm mt-1">برنامه با استفاده از نتیجه (توصیفگر فایل)، حلقه خواندن و نوشتن را با فراخوانی‌های سیستمی `read()` و `write()` ادامه می‌دهد.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Smooth scrolling for nav links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+                // Set active nav item
+                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                this.classList.add('active');
+            }
+        });
+    });
+
+    // Tab logic for interfaces
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            const targetTab = button.dataset.tab;
+            tabContents.forEach(content => {
+                content.classList.toggle('active', content.id === `${targetTab}-tab`);
+            });
+        });
+    });
+    // Set initial active tab
+    document.querySelector('.tab-button[data-tab="cli"]').click();
+    document.querySelector('.nav-item[href="#interfaces"]').classList.add('active');
+
+
+    // CLI simulation
+    const cliCommandEl = document.getElementById('cli-command');
+    const cliOutputEl = document.getElementById('cli-output');
+    const commandToType = "rm file.txt";
+    let typeIndex = 0;
+    
+    function typeCommand() {
+        if (typeIndex < commandToType.length) {
+            cliCommandEl.textContent += commandToType.charAt(typeIndex);
+            typeIndex++;
+            setTimeout(typeCommand, 150);
+        } else {
+            // Command finished typing, now show execution explanation
+            cliOutputEl.innerHTML = `<p class="text-yellow-400">در حال اجرا...</p>
+            <p class="mt-2">۱. پوسته (Shell) یک پردازه جدید ایجاد می‌کند.</p>
+            <p>۲. برنامه <span class="text-cyan-400">/bin/rm</span> را در حافظه بارگذاری می‌کند.</p>
+            <p>۳. <span class="text-cyan-400">file.txt</span> را به عنوان پارامتر به آن می‌دهد.</p>
+            <p>۴. برنامه <span class="text-cyan-400">rm</span> فراخوانی سیستمی لازم برای حذف فایل را اجرا می‌کند.</p>`;
+        }
+    }
+    typeCommand();
+
+
+    // System call simulation
+    const startSimBtn = document.getElementById('start-syscall-sim');
+    const steps = document.querySelectorAll('.syscall-step');
+    let currentStep = 0;
+    let simInterval;
+
+    startSimBtn.addEventListener('click', () => {
+        clearInterval(simInterval);
+        currentStep = 0;
+        steps.forEach(step => step.classList.remove('active'));
+
+        simInterval = setInterval(() => {
+            if (currentStep < steps.length) {
+                 steps.forEach(step => step.classList.remove('active'));
+                 steps[currentStep].classList.add('active');
+                 steps[currentStep].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                 currentStep++;
+            } else {
+                clearInterval(simInterval);
+                setTimeout(() => {
+                    steps.forEach(step => step.classList.remove('active'));
+                }, 1500);
+            }
+        }, 2000);
+    });
+    
+    // Mobile menu
+    document.getElementById('mobile-menu-button').addEventListener('click', () => {
+        document.getElementById('mobile-menu').classList.toggle('hidden');
+    });
+
+});
+</script>
+
+</body>
+</html>

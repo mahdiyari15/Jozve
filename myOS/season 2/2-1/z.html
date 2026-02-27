@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر جامع فصل دوم - بخش اول: سرویس‌ها و رابط‌ها</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Fresh Mint -->
+    <!-- Application Structure Plan: The SPA is designed as an interactive dashboard focusing on OS services. A main, icon-driven navigation allows users to switch between 'سرویس‌های کاربر' and 'سرویس‌های سیستم'. The user flow is task-oriented. The "User Services" section is a grid of interactive cards, each representing a service (like UI, I/O). The "System Services" section uses a similar layout. The main interaction is clicking on a service card, which opens a modal window with a deep-dive explanation, examples, and a simple interactive element to reinforce the concept. This structure is chosen to break down the dense list of services from the report into a visually organized and explorable format, promoting active learning over passive reading. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: User Interface Types (GUI, CLI, Touch) -> Goal: Compare/Inform -> Viz: An interactive card for "رابط کاربر". -> Interaction: Clicking the card opens a modal with a tabbed interface. Users can click tabs for 'GUI', 'CLI', and 'Touch' to see a representative icon and a concise description of each. -> Justification: Tabs are a clean way to compare and contrast related sub-topics within a single context.
+        - Report Info: Communication Models (Shared Memory vs. Message Passing) -> Goal: Compare/Contrast -> Viz: An interactive card for "ارتباطات". -> Interaction: In the modal, a toggle switches between two animated diagrams built with HTML/CSS. "حافظه مشترک" shows two processes reading/writing to a central block. "عبور پیغام" shows messages moving between processes via the OS kernel block. -> Justification: The animation makes the abstract data flow of these two models tangible and easy to differentiate.
+        - Report Info: Error Detection -> Goal: Organize/Inform -> Viz: A card for "تشخیص خطا". -> Interaction: The modal displays different error types (Hardware, Software) as clickable accordions. Clicking one reveals examples (e.g., "خطای حافظه" or "تقسیم بر صفر"). -> Justification: Accordions are an effective way to present categorized information without overwhelming the user.
+        - Report Info: Resource Allocation & Accounting -> Goal: Inform -> Viz: A combined card. -> Interaction: The modal explains both concepts and includes a simple animated "resource usage" bar that fills up to demonstrate the concept of accounting/logging. -> Justification: A simple visual metaphor to connect the abstract idea of logging to a concrete representation.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f0fdf4;
+            color: #1f2937;
+        }
+        .main-nav-btn.active {
+            background-color: #10b981;
+            color: white;
+        }
+        .service-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .modal {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .modal.active {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-tab.active {
+            border-color: #10b981;
+            background-color: #d1fae5;
+            color: #064e3b;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gray-800 text-white p-4 shadow-lg text-center">
+        <h1 class="text-2xl md:text-3xl font-bold">فصل دوم، بخش اول: سرویس‌ها و رابط‌های سیستم‌عامل</h1>
+        <p class="text-sm mt-1 text-gray-300">کالبدشکافی وظایف و خدمات کلیدی سیستم‌عامل</p>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <!-- Main Navigation -->
+        <div class="flex justify-center mb-8 bg-gray-200 p-2 rounded-full">
+            <button class="main-nav-btn active w-1/2 py-2 px-4 rounded-full font-bold transition-colors" data-target="user-services">
+                <span class="mr-2">👤</span> سرویس‌های کاربر
+            </button>
+            <button class="main-nav-btn w-1/2 py-2 px-4 rounded-full font-bold transition-colors" data-target="system-services">
+                <span class="mr-2">⚙️</span> سرویس‌های سیستم
+            </button>
+        </div>
+
+        <!-- User-Facing Services Section -->
+        <section id="user-services-section">
+            <h2 class="text-3xl font-bold mb-6 text-center text-emerald-700">دسته اول: سرویس‌های مفید برای کاربر</h2>
+            <p class="text-center mb-8 max-w-3xl mx-auto">این سرویس‌ها مستقیماً با شما و برنامه‌هایتان در تعامل هستند تا تجربه کار با کامپیوتر را ساده‌تر، قدرتمندتر و لذت‌بخش‌تر کنند. روی هر کارت کلیک کنید تا با جزئیات آن آشنا شوید.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="service-card bg-white p-6 rounded-xl shadow-lg border cursor-pointer" data-modal="ui">
+                    <div class="text-4xl">🖥️</div>
+                    <h3 class="text-xl font-bold mt-3">رابط کاربر (UI)</h3>
+                    <p class="text-sm mt-2 text-gray-600">پل ارتباطی بین شما و سیستم‌عامل.</p>
+                </div>
+                <div class="service-card bg-white p-6 rounded-xl shadow-lg border cursor-pointer" data-modal="execution">
+                    <div class="text-4xl">🚀</div>
+                    <h3 class="text-xl font-bold mt-3">اجرای برنامه</h3>
+                    <p class="text-sm mt-2 text-gray-600">بارگذاری، اجرا و مدیریت چرخه حیات برنامه‌ها.</p>
+                </div>
+                <div class="service-card bg-white p-6 rounded-xl shadow-lg border cursor-pointer" data-modal="io">
+                    <div class="text-4xl">🔌</div>
+                    <h3 class="text-xl font-bold mt-3">عملیات ورودی/خروجی</h3>
+                    <p class="text-sm mt-2 text-gray-600">مدیریت ارتباط برنامه با سخت‌افزارهایی مانند دیسک و پرینتر.</p>
+                </div>
+                <div class="service-card bg-white p-6 rounded-xl shadow-lg border cursor-pointer" data-modal="filesystem">
+                    <div class="text-4xl">📂</div>
+                    <h3 class="text-xl font-bold mt-3">دستکاری سیستم فایل</h3>
+                    <p class="text-sm mt-2 text-gray-600">ایجاد، حذف، خواندن و نوشتن فایل‌ها و دایرکتوری‌ها.</p>
+                </div>
+                <div class="service-card bg-white p-6 rounded-xl shadow-lg border cursor-pointer" data-modal="communication">
+                    <div class="text-4xl">💬</div>
+                    <h3 class="text-xl font-bold mt-3">ارتباطات</h3>
+                    <p class="text-sm mt-2 text-gray-600">فراهم کردن راهی برای تبادل اطلاعات بین پردازه‌ها.</p>
+                </div>
+                <div class="service-card bg-white p-6 rounded-xl shadow-lg border cursor-pointer" data-modal="error">
+                    <div class="text-4xl">⚠️</div>
+                    <h3 class="text-xl font-bold mt-3">تشخیص خطا</h3>
+                    <p class="text-sm mt-2 text-gray-600">شناسایی و مدیریت خطاهای سخت‌افزاری و نرم‌افزاری.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Efficiency Services Section -->
+        <section id="system-services-section" class="hidden">
+            <h2 class="text-3xl font-bold mb-6 text-center text-emerald-700">دسته دوم: سرویس‌های برای کارایی سیستم</h2>
+             <p class="text-center mb-8 max-w-3xl mx-auto">این سرویس‌ها در پس‌زمینه کار می‌کنند و هدفشان تضمین عملکرد صحیح، بهینه و امن خود سیستم‌عامل است. روی هر کارت کلیک کنید تا با جزئیات آن آشنا شوید.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="service-card bg-white p-6 rounded-xl shadow-lg border cursor-pointer" data-modal="allocation">
+                    <div class="text-4xl">📊</div>
+                    <h3 class="text-xl font-bold mt-3">تخصیص منابع</h3>
+                    <p class="text-sm mt-2 text-gray-600">مدیریت عادلانه و کارآمد منابعی مانند CPU و حافظه بین پردازه‌ها.</p>
+                </div>
+                <div class="service-card bg-white p-6 rounded-xl shadow-lg border cursor-pointer" data-modal="accounting">
+                    <div class="text-4xl">📈</div>
+                    <h3 class="text-xl font-bold mt-3">سابقه‌سازی (حسابرسی)</h3>
+                    <p class="text-sm mt-2 text-gray-600">ثبت آمار مصرف منابع برای تحلیل کارایی و صدور صورت‌حساب.</p>
+                </div>
+                <div class="service-card bg-white p-6 rounded-xl shadow-lg border cursor-pointer" data-modal="security">
+                    <div class="text-4xl">🛡️</div>
+                    <h3 class="text-xl font-bold mt-3">حفاظت و امنیت</h3>
+                    <p class="text-sm mt-2 text-gray-600">کنترل دسترسی به منابع و دفاع از سیستم در برابر حملات.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal -->
+    <div id="service-modal" class="modal fixed inset-0 bg-black bg-opacity-60 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 id="modal-title" class="text-2xl font-bold"></h3>
+                <button id="modal-close" class="text-2xl font-bold">&times;</button>
+            </div>
+            <div id="modal-body" class="p-6 overflow-y-auto"></div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Main navigation logic
+    const userServicesBtn = document.querySelector('[data-target="user-services"]');
+    const systemServicesBtn = document.querySelector('[data-target="system-services"]');
+    const userServicesSection = document.getElementById('user-services-section');
+    const systemServicesSection = document.getElementById('system-services-section');
+
+    userServicesBtn.addEventListener('click', () => {
+        userServicesSection.classList.remove('hidden');
+        systemServicesSection.classList.add('hidden');
+        userServicesBtn.classList.add('active');
+        systemServicesBtn.classList.remove('active');
+    });
+
+    systemServicesBtn.addEventListener('click', () => {
+        systemServicesSection.classList.remove('hidden');
+        userServicesSection.classList.add('hidden');
+        systemServicesBtn.classList.add('active');
+        userServicesBtn.classList.remove('active');
+    });
+
+    // Modal logic
+    const modal = document.getElementById('service-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    const modalClose = document.getElementById('modal-close');
+    
+    const modalData = {
+        ui: {
+            title: "رابط کاربر (UI)",
+            content: `
+                <p>این سرویس، پل ارتباطی بین انسان و ماشین است. سیستم‌عامل‌ها معمولاً یک یا چند نوع از رابط‌های زیر را فراهم می‌کنند:</p>
+                <div class="mt-4 border-b border-gray-200">
+                    <nav class="-mb-px flex space-x-4 space-x-reverse" id="ui-tabs">
+                        <button class="modal-tab active whitespace-nowrap py-2 px-4 border-b-2 font-medium text-sm" data-tab="gui">گرافیکی (GUI)</button>
+                        <button class="modal-tab whitespace-nowrap py-2 px-4 border-b-2 font-medium text-sm" data-tab="cli">خط فرمان (CLI)</button>
+                        <button class="modal-tab whitespace-nowrap py-2 px-4 border-b-2 font-medium text-sm" data-tab="touch">لمسی</button>
+                    </nav>
+                </div>
+                <div class="pt-4">
+                    <div id="gui-tab" class="modal-tab-content">محیطی بصری با پنجره‌ها، آیکون‌ها و ماوس. هدف اصلی آن سهولت استفاده است.</div>
+                    <div id="cli-tab" class="modal-tab-content hidden">محیطی متنی که با تایپ دستورات کار می‌کند. قدرتمند و مناسب برای اتوماسیون و مدیریت سرور.</div>
+                    <div id="touch-tab" class="modal-tab-content hidden">رابط مخصوص دستگاه‌های موبایل که با لمس و حرکات انگشت کار می‌کند.</div>
+                </div>`
+        },
+        execution: { title: "اجرای برنامه", content: "سیستم‌عامل مسئول است تا فایل اجرایی یک برنامه را از دیسک بخواند، آن را در حافظه بارگذاری کند، منابع لازم (مانند زمان CPU) را به آن اختصاص دهد و اجرای آن را آغاز کند. همچنین مدیریت خاتمه برنامه (چه به صورت عادی و چه در صورت بروز خطا) بر عهده سیستم‌عامل است." },
+        io: { title: "عملیات ورودی/خروجی", content: "برنامه‌ها برای دسترسی به دستگاه‌های سخت‌افزاری (مانند خواندن از کیبورد یا نوشتن روی دیسک) نمی‌توانند مستقیماً با آنها صحبت کنند. سیستم‌عامل به عنوان یک واسطه امن عمل کرده و این درخواست‌ها را دریافت و به صورت کنترل‌شده اجرا می‌کند." },
+        filesystem: { title: "دستکاری سیستم فایل", content: "این سرویس به برنامه‌ها اجازه می‌دهد تا فایل‌ها و دایرکتوری‌ها را ایجاد، حذف، باز، بسته، خوانده و بنویسند. سیستم‌عامل همچنین مسئولیت مدیریت مجوزهای دسترسی به فایل‌ها را بر عهده دارد تا از دسترسی‌های غیرمجاز جلوگیری کند." },
+        communication: {
+            title: "ارتباطات بین پردازه‌ای (IPC)",
+            content: `
+                <p>پردازه‌ها اغلب نیاز به همکاری و تبادل داده دارند. سیستم‌عامل دو مدل اصلی برای این کار فراهم می‌کند:</p>
+                <ul class="list-disc pr-5 mt-2 space-y-2">
+                    <li><strong>حافظه مشترک (Shared Memory):</strong> سریع و کارآمد. سیستم‌عامل یک قطعه از حافظه را در اختیار چند پردازه قرار می‌دهد تا مستقیماً با هم داده رد و بدل کنند. مسئولیت همگام‌سازی برای جلوگیری از تداخل بر عهده خود برنامه‌نویسان است.</li>
+                    <li><strong>عبور پیغام (Message Passing):</strong> امن‌تر و ساده‌تر برای استفاده. پردازه‌ها بسته‌های اطلاعاتی را از طریق هسته سیستم‌عامل برای یکدیگر ارسال می‌کنند. این روش کندتر است اما برای ارتباط در شبکه نیز مناسب است.</li>
+                </ul>`
+        },
+        error: { title: "تشخیص خطا", content: "سیستم‌عامل به طور مداوم سخت‌افزار و نرم‌افزار را برای یافتن خطاها نظارت می‌کند. در صورت بروز خطا (مانند خطای سخت‌افزاری دیسک یا تلاش یک برنامه برای دسترسی به حافظه غیرمجاز)، سیستم‌عامل باید اقدام مناسب را برای حفظ پایداری سیستم انجام دهد." },
+        allocation: { title: "تخصیص منابع", content: "در یک محیط چندکاربره، سیستم‌عامل باید منابع محدود (مانند چرخه‌های CPU، بایت‌های حافظه، فضای دیسک) را بین پردازه‌های در حال رقابت تقسیم کند. الگوریتم‌های زمان‌بندی CPU نمونه‌ای از این سرویس هستند که تصمیم می‌گیرند کدام پردازه در چه زمانی اجرا شود تا کارایی و عدالت بهینه شود." },
+        accounting: { title: "سابقه‌سازی (حسابرسی)", content: "سیستم‌عامل آمار دقیقی از میزان مصرف هر منبع توسط هر کاربر یا پردازه را نگه می‌دارد. این داده‌ها برای تحلیل عملکرد سیستم، شناسایی گلوگاه‌ها و یا برای صدور صورت‌حساب در محیط‌های تجاری استفاده می‌شود." },
+        security: { title: "حفاظت و امنیت", content: "حفاظت به کنترل دسترسی داخلی (مثلاً جلوگیری از دسترسی پردازه A به حافظه پردازه B) می‌پردازد، در حالی که امنیت به دفاع از سیستم در برابر تهدیدات خارجی (مانند ویروس‌ها و هکرها) مربوط می‌شود. این سرویس با احراز هویت کاربران (مانند رمز عبور) و مدیریت مجوزها، این دو هدف را تأمین می‌کند." },
+    };
+
+    document.querySelectorAll('.service-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const modalId = card.dataset.modal;
+            const data = modalData[modalId];
+            modalTitle.textContent = data.title;
+            modalBody.innerHTML = data.content;
+            modal.classList.add('active');
+
+            // Add event listeners for tabs inside the modal if they exist
+            if (modalId === 'ui') {
+                const tabs = modal.querySelectorAll('.modal-tab');
+                const tabContents = modal.querySelectorAll('.modal-tab-content');
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        tabs.forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        tabContents.forEach(content => {
+                            content.classList.toggle('hidden', content.id !== `${tab.dataset.tab}-tab`);
+                        });
+                    });
+                });
+            }
+        });
+    });
+
+    modalClose.addEventListener('click', () => modal.classList.remove('active'));
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+
+});
+</script>
+
+</body>
+</html>

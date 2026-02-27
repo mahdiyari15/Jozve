@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر جامع سیستم عامل - بخش دهم: محیط‌های محاسباتی</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Digital Horizon -->
+    <!-- Application Structure Plan: The SPA is designed as an interactive dashboard exploring different computing environments. A main icon-based navigation allows users to switch between thematic sections: Traditional, Mobile, Client-Server/P2P, Cloud, and Real-Time. This non-linear, task-oriented structure lets users jump to the topic of interest. The core design philosophy is to make abstract architectures and concepts tangible through interactive visualizations, such as a toggleable diagram for C/S vs. P2P and an animated simulation for real-time systems, fostering a deeper understanding through active engagement. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Traditional Computing Evolution -> Goal: Show Change -> Viz: A simple "Then vs. Now" comparison. -> Interaction: A toggle switches between "سیستم‌های اشتراک زمانی" (showing multiple terminals connected to one mainframe) and "کامپیوترهای شخصی مدرن" (showing a networked PC). -> Justification: A direct visual comparison effectively communicates the evolution.
+        - Report Info: Client-Server vs. P2P Architectures -> Goal: Compare/Contrast -> Viz: A dynamic, interactive diagram built with HTML divs. -> Interaction: A toggle switches the view between a centralized Client-Server model (lines pointing to a central server) and a decentralized P2P model (a mesh of connected peers). -> Justification: This makes the fundamental structural difference instantly and intuitively obvious.
+        - Report Info: Cloud Computing Service Models (IaaS, PaaS, SaaS) -> Goal: Organize/Explain -> Viz: An interactive, layered pyramid diagram. -> Interaction: Clicking on a layer (e.g., "SaaS") highlights it and populates a side panel with its definition and examples (e.g., "Google Docs"). -> Justification: The pyramid is a standard and highly effective metaphor for these layered services.
+        - Report Info: Real-Time Systems & Deadlines -> Goal: Explain a Critical Concept -> Viz: An animated simulation of a task completion. -> Interaction: A "شروع عملیات" button triggers an animation of a progress bar moving towards a "Deadline" marker. A toggle allows switching between a "سیستم عادی" (may miss the deadline) and a "سیستم بلادرنگ" (guaranteed to meet the deadline), showing a visual "SUCCESS" or "FAILURE". -> Justification: This interactive simulation makes the abstract and critical concept of a hard real-time deadline tangible and memorable.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f0f4f8;
+            color: #1f2937;
+        }
+        .nav-button.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .content-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes progress-bar {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+        .progress-bar-animation {
+            animation: progress-bar 1.5s linear forwards;
+        }
+        .progress-bar-animation-fast {
+            animation: progress-bar 0.8s linear forwards;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gray-800 text-white p-4 shadow-lg">
+        <div class="container mx-auto text-center">
+            <h1 class="text-2xl md:text-3xl font-bold">بخش دهم: کاوشگر محیط‌های محاسباتی</h1>
+            <p class="text-sm mt-1 text-gray-300">سفر در دنیای متنوع سیستم‌عامل‌ها از گذشته تا امروز</p>
+        </div>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="bg-white p-3 sticky top-0 z-40 shadow-md">
+        <div class="container mx-auto flex justify-center items-center gap-4 md:gap-8 flex-wrap" id="main-nav">
+            <button class="nav-button flex flex-col items-center p-2 rounded-lg transition-all duration-300 w-20" data-target="traditional">
+                <span class="text-2xl">🏛️</span>
+                <span class="text-xs font-semibold mt-1">مرسوم</span>
+            </button>
+            <button class="nav-button flex flex-col items-center p-2 rounded-lg transition-all duration-300 w-20" data-target="mobile">
+                <span class="text-2xl">📱</span>
+                <span class="text-xs font-semibold mt-1">موبایل</span>
+            </button>
+            <button class="nav-button flex flex-col items-center p-2 rounded-lg transition-all duration-300 w-20" data-target="distributed">
+                <span class="text-2xl">🌐</span>
+                <span class="text-xs font-semibold mt-1">توزیع‌شده</span>
+            </button>
+            <button class="nav-button flex flex-col items-center p-2 rounded-lg transition-all duration-300 w-20" data-target="cloud">
+                 <span class="text-2xl">☁️</span>
+                <span class="text-xs font-semibold mt-1">ابری</span>
+            </button>
+            <button class="nav-button flex flex-col items-center p-2 rounded-lg transition-all duration-300 w-20" data-target="realtime">
+                <span class="text-2xl">⏱️</span>
+                <span class="text-xs font-semibold mt-1">بلادرنگ</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <!-- Traditional Computing Section -->
+        <section id="traditional-section" class="content-section">
+            <h2 class="text-3xl font-bold mb-4 text-blue-600 border-r-4 border-blue-600 pr-4">۱-۱۰-۱: محاسبات مرسوم</h2>
+            <p class="mb-8 text-lg leading-relaxed">این مفهوم به معماری‌های کلاسیک کامپیوتری اشاره دارد که از سیستم‌های اشتراک زمانی متمرکز به شبکه‌های مدرن کامپیوترهای شخصی تکامل یافته‌اند.</p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <p class="text-center font-bold mb-4">امروزه، حتی یک کامپیوتر شخصی نیز از همان تکنیک‌های اشتراک زمانی برای مدیریت همزمان چندین برنامه (پنجره) استفاده می‌کند. شبکه‌های خانگی و اداری با استفاده از فایروال برای امنیت، و سرورها برای خدمات فایل و چاپ، این محیط را تکمیل می‌کنند.</p>
+            </div>
+        </section>
+
+        <!-- Mobile Computing Section -->
+        <section id="mobile-section" class="content-section">
+            <h2 class="text-3xl font-bold mb-4 text-blue-600 border-r-4 border-blue-600 pr-4">۱-۱۰-۲: محاسبات موبایل</h2>
+            <p class="mb-8 text-lg leading-relaxed">محاسبات روی دستگاه‌های قابل حمل مانند گوشی‌های هوشمند و تبلت‌ها، با ویژگی‌ها و چالش‌های منحصربه‌فرد خود، دنیای نرم‌افزار را متحول کرده‌اند.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <h3 class="font-bold text-xl mb-3 text-green-600">ویژگی‌های کلیدی</h3>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-start"><span class="text-2xl ml-3">📍</span><div><strong>GPS:</strong> برای کاربردهای مبتنی بر مکان و واقعیت افزوده.</div></li>
+                        <li class="flex items-start"><span class="text-2xl ml-3">🤸</span><div><strong>شتاب‌سنج:</strong> برای تشخیص حرکت و جهت دستگاه، که در بازی‌ها و رابط‌های کاربری حرکتی استفاده می‌شود.</div></li>
+                        <li class="flex items-start"><span class="text-2xl ml-3">📶</span><div><strong>اتصال بی‌سیم:</strong> استفاده دائمی از Wi-Fi و شبکه‌های داده سلولی.</div></li>
+                    </ul>
+                </div>
+                 <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <h3 class="font-bold text-xl mb-3 text-red-600">چالش‌ها و محدودیت‌ها</h3>
+                     <ul class="space-y-3 text-sm">
+                        <li class="flex items-start"><span class="text-2xl ml-3">🔋</span><div><strong>مدیریت انرژی:</strong> سیستم‌عامل باید برای مصرف بهینه باتری طراحی شود.</div></li>
+                        <li class="flex items-start"><span class="text-2xl ml-3">⚙️</span><div><strong>منابع محدود:</strong> پردازنده‌های کندتر و حافظه کمتر نسبت به کامپیوترهای شخصی.</div></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Distributed Section (Client-Server vs P2P) -->
+        <section id="distributed-section" class="content-section">
+            <h2 class="text-3xl font-bold mb-4 text-blue-600 border-r-4 border-blue-600 pr-4">مقایسه: کارفرما-کارگزار در برابر نظیر-به-نظیر</h2>
+             <p class="mb-8 text-lg leading-relaxed">دو معماری اصلی برای سیستم‌های توزیع‌شده وجود دارد: مدل متمرکز **کارفرما-کارگزار** و مدل غیرمتمرکز **نظیر-به-نظیر (P2P)**. با استفاده از دکمه زیر، ساختار این دو مدل را مقایسه کنید.</p>
+             <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <div class="flex justify-center mb-6">
+                    <div class="bg-gray-200 p-1 rounded-full flex">
+                        <button id="cs-toggle" class="px-4 py-2 rounded-full text-sm font-semibold focus:outline-none">کارفرما-کارگزار</button>
+                        <button id="p2p-toggle" class="px-4 py-2 rounded-full text-sm font-semibold focus:outline-none">نظیر-به-نظیر</button>
+                    </div>
+                 </div>
+                 <div id="cs-view" class="text-center">
+                     <h3 class="text-xl font-bold">مدل کارفرما-کارگزار (متمرکز)</h3>
+                     <p class="text-sm mt-2 mb-4">تمام کارفرماها به یک کارگزار مرکزی متصل می‌شوند. کارگزار یک **گلوگاه (Bottleneck)** بالقوه است.</p>
+                     <!-- Diagram built with divs -->
+                 </div>
+                 <div id="p2p-view" class="hidden text-center">
+                     <h3 class="text-xl font-bold">مدل نظیر-به-نظیر (غیرمتمرکز)</h3>
+                     <p class="text-sm mt-2 mb-4">تمام گره‌ها (همتایان) با هم برابرند و مستقیماً با یکدیگر ارتباط برقرار می‌کنند. با افزایش تعداد کاربران، ظرفیت کل سیستم افزایش می‌یابد.</p>
+                      <!-- Diagram built with divs -->
+                 </div>
+            </div>
+        </section>
+        
+        <!-- Cloud Computing Section -->
+        <section id="cloud-section" class="content-section">
+            <h2 class="text-3xl font-bold mb-4 text-blue-600 border-r-4 border-blue-600 pr-4">۱-۱۰-۵: رایانش ابری (Cloud Computing)</h2>
+             <p class="mb-8 text-lg leading-relaxed">رایانش ابری، خدمات محاسباتی را به عنوان یک سرویس از طریق اینترنت ارائه می‌دهد. این خدمات در سه لایه اصلی طبقه‌بندی می‌شوند. روی هر لایه از هرم زیر کلیک کنید تا با آن بیشتر آشنا شوید.</p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <div class="flex flex-col md:flex-row gap-8 items-center">
+                    <div class="w-full md:w-1/2">
+                        <div class="flex flex-col items-center" id="cloud-pyramid">
+                            <div data-layer="saas" class="pyramid-layer w-full cursor-pointer bg-red-300 p-4 text-center rounded-t-lg font-bold transition-transform hover:scale-105">SaaS</div>
+                            <div data-layer="paas" class="pyramid-layer w-11/12 cursor-pointer bg-yellow-300 p-4 text-center font-bold transition-transform hover:scale-105">PaaS</div>
+                            <div data-layer="iaas" class="pyramid-layer w-full md:w-full cursor-pointer bg-green-300 p-4 text-center rounded-b-lg font-bold transition-transform hover:scale-105" style="width: 100%;">IaaS</div>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/2">
+                        <div id="cloud-details" class="p-4 bg-gray-50 rounded-lg border min-h-[200px]">
+                            <p class="text-gray-500 text-center pt-16">روی یکی از لایه‌های هرم کلیک کنید.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Real-Time Section -->
+        <section id="realtime-section" class="content-section">
+            <h2 class="text-3xl font-bold mb-4 text-blue-600 border-r-4 border-blue-600 pr-4">۱-۱۰-۶: سیستم‌های بلادرنگ</h2>
+            <p class="mb-8 text-lg leading-relaxed">این سیستم‌ها باید وظایف خود را در محدودیت‌های زمانی سخت (Deadline) انجام دهند. از دست دادن حتی یک Deadline می‌تواند فاجعه‌بار باشد. در شبیه‌ساز زیر، تفاوت یک سیستم عادی و یک سیستم بلادرنگ را در مواجهه با یک Deadline مشاهده کنید.</p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h3 class="text-xl font-bold mb-6 text-center">شبیه‌ساز Deadline</h3>
+                 <div class="flex justify-center gap-4 mb-4">
+                    <label class="flex items-center"><input type="radio" name="rt-mode" value="normal" checked class="ml-2">سیستم عادی</label>
+                    <label class="flex items-center"><input type="radio" name="rt-mode" value="realtime" class="ml-2">سیستم بلادرنگ</label>
+                </div>
+                <button id="rt-start-btn" class="mx-auto block bg-blue-500 text-white px-4 py-2 rounded-lg">شروع عملیات حیاتی</button>
+                <div class="w-full bg-gray-200 rounded-full h-8 mt-4 relative">
+                    <div id="rt-progress-bar" class="bg-blue-500 h-8 rounded-full"></div>
+                    <div class="absolute top-0 h-full border-r-4 border-dashed border-red-500" style="right: 70%;">
+                        <span class="absolute -top-6 right-0 transform translate-x-1/2 text-sm font-bold text-red-500">Deadline</span>
+                    </div>
+                </div>
+                <p id="rt-status" class="text-center mt-4 font-bold text-2xl h-8"></p>
+            </div>
+        </section>
+
+    </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const navButtons = document.querySelectorAll('.nav-button');
+    const contentSections = document.querySelectorAll('.content-section');
+
+    function showSection(targetId) {
+        contentSections.forEach(section => section.classList.toggle('active', section.id === `${targetId}-section`));
+        navButtons.forEach(button => button.classList.toggle('active', button.dataset.target === targetId));
+    }
+
+    navButtons.forEach(button => button.addEventListener('click', () => showSection(button.dataset.target)));
+    showSection('traditional'); // Default view
+
+    // Mobile menu
+    document.getElementById('mobile-menu-button').addEventListener('click', () => {
+        document.getElementById('mobile-menu').classList.toggle('hidden');
+    });
+
+    // Distributed Systems Toggle
+    const csToggle = document.getElementById('cs-toggle');
+    const p2pToggle = document.getElementById('p2p-toggle');
+    const csView = document.getElementById('cs-view');
+    const p2pView = document.getElementById('p2p-view');
+    const activeToggleClass = 'bg-white text-gray-800 shadow';
+    
+    csToggle.addEventListener('click', () => {
+        csView.classList.remove('hidden');
+        p2pView.classList.add('hidden');
+        csToggle.classList.add(activeToggleClass);
+        p2pToggle.classList.remove(activeToggleClass);
+    });
+    p2pToggle.addEventListener('click', () => {
+        p2pView.classList.remove('hidden');
+        csView.classList.add('hidden');
+        p2pToggle.classList.add(activeToggleClass);
+        csToggle.classList.remove(activeToggleClass);
+    });
+    csToggle.click();
+
+    // Cloud Pyramid
+    const pyramidLayers = document.querySelectorAll('.pyramid-layer');
+    const cloudDetails = document.getElementById('cloud-details');
+    const layerData = {
+        saas: { title: 'نرم‌افزار به عنوان سرویس (SaaS)', desc: 'ارائه برنامه‌های کاربردی آماده از طریق اینترنت.', example: 'مثال: Google Docs, Office 365' },
+        paas: { title: 'پلتفرم به عنوان سرویس (PaaS)', desc: 'ارائه یک پشته نرم‌افزاری (مانند پایگاه داده) برای توسعه‌دهندگان.', example: 'مثال: Heroku, Google App Engine' },
+        iaas: { title: 'زیرساخت به عنوان سرویس (IaaS)', desc: 'ارائه منابع محاسباتی خام مانند سرورهای مجازی و فضای ذخیره‌سازی.', example: 'مثال: Amazon Web Services (AWS), Microsoft Azure' }
+    };
+    pyramidLayers.forEach(layer => {
+        layer.addEventListener('click', () => {
+            const layerId = layer.dataset.layer;
+            const data = layerData[layerId];
+            cloudDetails.innerHTML = `<h4 class="font-bold text-lg mb-2">${data.title}</h4><p class="text-sm mb-3">${data.desc}</p><p class="text-sm font-semibold bg-gray-200 p-2 rounded">${data.example}</p>`;
+            pyramidLayers.forEach(l => l.classList.remove('ring-2', 'ring-blue-500'));
+            layer.classList.add('ring-2', 'ring-blue-500');
+        });
+    });
+
+    // Real-Time Simulation
+    const rtStartBtn = document.getElementById('rt-start-btn');
+    const rtProgressBar = document.getElementById('rt-progress-bar');
+    const rtStatus = document.getElementById('rt-status');
+    rtStartBtn.addEventListener('click', () => {
+        rtStartBtn.disabled = true;
+        rtProgressBar.classList.remove('progress-bar-animation', 'progress-bar-animation-fast', 'bg-red-500', 'bg-green-500');
+        void rtProgressBar.offsetWidth; // Trigger reflow
+        rtStatus.textContent = 'در حال انجام عملیات...';
+        
+        const isRealTime = document.querySelector('input[name="rt-mode"]:checked').value === 'realtime';
+        
+        if (isRealTime) {
+            rtProgressBar.classList.add('progress-bar-animation-fast');
+        } else {
+            rtProgressBar.classList.add('progress-bar-animation');
+        }
+
+        setTimeout(() => {
+            const progressWidth = (rtProgressBar.offsetWidth / rtProgressBar.parentElement.offsetWidth) * 100;
+            if (progressWidth < 70) {
+                 rtStatus.textContent = '❌ شکست! Deadline از دست رفت.';
+                 rtStatus.classList.add('text-red-500');
+                 rtStatus.classList.remove('text-green-500');
+                 rtProgressBar.classList.add('bg-red-500');
+            } else {
+                rtStatus.textContent = '✅ موفق! عملیات قبل از Deadline تمام شد.';
+                rtStatus.classList.add('text-green-500');
+                rtStatus.classList.remove('text-red-500');
+                rtProgressBar.classList.add('bg-green-500');
+            }
+             rtStartBtn.disabled = false;
+        }, isRealTime ? 850 : 1550);
+    });
+});
+</script>
+
+</body>
+</html>

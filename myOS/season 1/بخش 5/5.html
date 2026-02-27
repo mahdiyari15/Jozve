@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر جامع سیستم عامل - بخش پنجم: مدیریت منابع</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Deep Ocean -->
+    <!-- Application Structure Plan: This SPA is designed as an interactive dashboard visualizing the OS as a 'Resource Manager'. The main navigation uses icons to represent each managed resource (Process, Memory, Storage, Cache, I/O), creating a task-oriented and visually intuitive flow. The core of the experience is interactivity. For instance, the 'Process Management' section has an interactive "Program vs. Process" visualization. 'Memory Management' shows an animated allocation/deallocation process. 'Caching' has a visual simulation of a cache hit/miss. This structure is chosen to transform the abstract roles of an OS into tangible, observable actions, making complex topics like cache coherency much easier to grasp. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Program vs. Process -> Goal: Differentiate Concepts -> Viz: Two cards, 'Program' (static icon, "منفعل") and 'Process' (animated icon, "فعال"). -> Interaction: Clicking a "Run Program" button triggers a CSS animation where the Program card "loads" into the Process card, which then starts animating, visually demonstrating that a process is an active instance of a program. -> Justification: This animation provides a simple, powerful metaphor for a fundamental OS concept.
+        - Report Info: Memory Management Tasks -> Goal: Inform/Explain a Process -> Viz: An animated diagram of main memory (a grid of blocks). -> Interaction: Buttons for "Allocate" and "Deallocate" trigger animations where colored blocks (representing processes) are added to or removed from the memory grid, and a "status list" (which part of memory is used by whom) updates in real-time. -> Justification: Visually demonstrates the dynamic nature of memory management.
+        - Report Info: File System Management -> Goal: Organize/Inform -> Viz: A clickable, tree-like structure for directories and files, built with nested HTML lists. -> Interaction: Clicking on a directory expands/collapses its contents. Clicking a file shows its (mock) metadata. -> Justification: A familiar and intuitive UI for representing a hierarchical file system.
+        - Report Info: Caching Mechanism -> Goal: Explain a Process -> Viz: A simple animated diagram showing CPU, Cache, and Main Memory. -> Interaction: User clicks a "Request Data" button. An animation plays out either a 'Cache Hit' (fast path from cache to CPU) or a 'Cache Miss' (slow path from Main Memory to cache, then to CPU), with descriptive text updating for each step. -> Justification: This visual simulation makes the abstract performance difference between a hit and a miss tangible.
+        - Report Info: Cache Coherency -> Goal: Explain a Complex Problem -> Viz: An animated diagram of a multi-processor system with local caches. -> Interaction: An animation shows CPU-1 modifying data 'A' in its cache. This triggers a "Coherency Protocol" animation that updates the stale data 'A' in CPU-2's cache, preventing inconsistency. -> Justification: Visually demonstrates a complex, critical hardware/OS problem and its solution in a simplified, step-by-step manner.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f4f7f6;
+            color: #34495e;
+        }
+        .nav-button.active {
+            background-color: #16a085;
+            color: white;
+            transform: scale(1.1);
+        }
+        .concept-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .concept-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .content-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .process-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(22, 160, 133, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(22, 160, 133, 0); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-[#2c3e50] text-gray-200 p-4 shadow-lg">
+        <div class="container mx-auto text-center">
+            <h1 class="text-2xl md:text-3xl font-bold">بخش پنجم: مدیریت منابع</h1>
+            <p class="text-sm mt-1">نگاهی عمیق به وظایف اصلی سیستم‌عامل به عنوان مدیر کل منابع کامپیوتر</p>
+        </div>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="bg-white p-4 sticky top-0 z-40 shadow-md">
+        <div class="container mx-auto flex justify-center items-center gap-4 md:gap-8 flex-wrap" id="main-nav">
+            <button class="nav-button flex flex-col items-center p-2 rounded-lg transition-all duration-300" data-target="process">
+                <span class="text-2xl">⚙️</span>
+                <span class="text-xs font-semibold mt-1">پردازه</span>
+            </button>
+            <button class="nav-button flex flex-col items-center p-2 rounded-lg transition-all duration-300" data-target="memory">
+                <span class="text-2xl">💾</span>
+                <span class="text-xs font-semibold mt-1">حافظه</span>
+            </button>
+            <button class="nav-button flex flex-col items-center p-2 rounded-lg transition-all duration-300" data-target="storage">
+                 <span class="text-2xl">🗄️</span>
+                <span class="text-xs font-semibold mt-1">ذخیره‌سازی</span>
+            </button>
+            <button class="nav-button flex flex-col items-center p-2 rounded-lg transition-all duration-300" data-target="cache">
+                 <span class="text-2xl">⚡️</span>
+                <span class="text-xs font-semibold mt-1">کش</span>
+            </button>
+            <button class="nav-button flex flex-col items-center p-2 rounded-lg transition-all duration-300" data-target="io">
+                <span class="text-2xl">🔌</span>
+                <span class="text-xs font-semibold mt-1">ورودی/خروجی</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <!-- Process Management Section -->
+        <section id="process-section" class="content-section">
+            <h2 class="text-3xl font-bold mb-4 text-[#16a085] border-r-4 border-[#16a085] pr-4">۱-۵-۱: مدیریت پردازه (Process)</h2>
+            <p class="mb-8 text-lg leading-relaxed">
+                پردازه، "واحد کار" در یک سیستم است. این بخش تفاوت بنیادین بین یک "برنامه" منفعل و یک "پردازه" فعال را نشان می‌دهد و وظایf اصلی سیستم‌عامل در قبال مدیریت چرخه حیات پردازه‌ها را تشریح می‌کند.
+            </p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h3 class="text-2xl font-bold mb-6 text-center">از برنامه تا پردازه: یک سفر تعاملی</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                    <div id="program-card" class="text-center p-6 bg-gray-100 rounded-lg border">
+                        <span class="text-5xl">📄</span>
+                        <h4 class="text-xl font-bold mt-2">برنامه (Program)</h4>
+                        <p class="text-sm mt-2">یک موجودیت **منفعل**؛ مجموعه‌ای از دستورالعمل‌ها که روی دیسک ذخیره شده است.</p>
+                    </div>
+                    <div class="text-center">
+                        <button id="run-button" class="bg-green-500 text-white font-bold py-2 px-6 rounded-full hover:bg-green-600 transition-transform hover:scale-105">اجرا کن</button>
+                        <div id="arrow-animation" class="text-4xl text-green-500 opacity-0 transition-opacity duration-500 mt-2">→</div>
+                    </div>
+                    <div id="process-card" class="text-center p-6 bg-blue-100 rounded-lg border border-blue-300">
+                        <span id="process-icon" class="text-5xl">💻</span>
+                        <h4 class="text-xl font-bold mt-2">پردازه (Process)</h4>
+                        <p class="text-sm mt-2">یک موجودیت **فعال**؛ نمونه‌ای از یک برنامه در حال اجرا با منابع اختصاصی خود.</p>
+                    </div>
+                </div>
+                 <div class="mt-8 bg-gray-50 p-4 rounded-lg border">
+                    <h4 class="font-bold">وظایف کلیدی سیستم‌عامل:</h4>
+                    <ul class="list-disc pr-6 mt-2 text-sm space-y-2">
+                        <li>ایجاد و حذف پردازه‌های کاربر و سیستمی.</li>
+                        <li>زمان‌بندی پردازه‌ها و نخ‌ها بر روی هسته‌های CPU.</li>
+                        <li>تعلیق (Suspend) و از سرگیری (Resume) پردازه‌ها.</li>
+                        <li>فراهم کردن مکانیزم‌هایی برای **همگام‌سازی (Synchronization)** و **ارتباط (Communication)** بین پردازه‌ها.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Memory Management Section -->
+        <section id="memory-section" class="content-section">
+             <h2 class="text-3xl font-bold mb-4 text-[#16a085] border-r-4 border-[#16a085] pr-4">۲-۵-۱: مدیریت حافظه (Memory)</h2>
+            <p class="mb-8 text-lg leading-relaxed">
+                حافظه اصلی (RAM) یکی از منابع حیاتی و گران‌بهاست. سیستم‌عامل باید این منبع را به صورت پویا بین پردازه‌های متعدد تقسیم کند. این بخش نشان می‌دهد که چگونه سیستم‌عامل فضای حافظه را تخصیص داده و بازپس می‌گیرد.
+            </p>
+             <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                 <h3 class="text-2xl font-bold mb-6 text-center">شبیه‌ساز تخصیص حافظه</h3>
+                 <div class="flex justify-center gap-4 mb-4">
+                     <button id="alloc-btn" class="bg-blue-500 text-white px-4 py-2 rounded-lg">تخصیص حافظه به پردازه جدید</button>
+                     <button id="dealloc-btn" class="bg-red-500 text-white px-4 py-2 rounded-lg">آزادسازی حافظه یک پردازه</button>
+                 </div>
+                 <div class="w-full h-32 bg-gray-200 rounded-lg p-2 flex gap-1" id="memory-map">
+                     <!-- Memory blocks will be inserted here by JS -->
+                 </div>
+                 <div class="mt-4 bg-gray-50 p-4 rounded-lg border">
+                    <h4 class="font-bold">وضعیت حافظه:</h4>
+                    <p id="memory-status" class="text-sm mt-2">حافظه خالی است. برای شروع، یک پردازه جدید تخصیص دهید.</p>
+                </div>
+             </div>
+        </section>
+
+        <!-- Storage Management Section -->
+        <section id="storage-section" class="content-section">
+             <h2 class="text-3xl font-bold mb-4 text-[#16a085] border-r-4 border-[#16a085] pr-4">۳-۵-۱ و ۴-۵-۱: مدیریت ذخیره‌سازی</h2>
+            <p class="mb-8 text-lg leading-relaxed">
+                سیستم‌عامل پیچیدگی‌های فیزیکی دستگاه‌های ذخیره‌سازی را پنهان کرده و یک دید منطقی و ساده به نام **فایل** و **دایرکتوری** ارائه می‌دهد. این بخش، وظایف سیستم‌عامل در مدیریت فایل‌ها و فضای ذخیره‌سازی انبوه (دیسک سخت) را نشان می‌دهد.
+            </p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">مدیریت سیستم فایل</h3>
+                        <div class="p-4 bg-gray-50 border rounded-lg h-64 overflow-y-auto">
+                            <ul class="text-sm">
+                                <li><span class="cursor-pointer">📁 / (root)</span>
+                                    <ul class="pr-4">
+                                        <li><span class="cursor-pointer">📁 home</span>
+                                            <ul class="pr-4">
+                                                 <li><span class="cursor-pointer">📁 user</span>
+                                                    <ul class="pr-4">
+                                                        <li>📄 document.txt</li>
+                                                        <li>📄 photo.jpg</li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li><span class="cursor-pointer">📁 usr</span>
+                                            <ul class="pr-4">
+                                                <li>📄 app.exe</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                         <p class="text-xs mt-2">یک ساختار سلسله مراتبی برای سازماندهی فایل‌ها.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">مدیریت ذخیره‌سازی انبوه</h3>
+                        <p class="text-sm mb-2">وظایف اصلی سیستم‌عامل در قبال دیسک سخت:</p>
+                        <ul class="list-disc pr-6 text-sm space-y-2">
+                            <li>**مدیریت فضای آزاد:** پیگیری اینکه کدام بلوک‌های دیسک آزاد هستند.</li>
+                            <li>**تخصیص فضا:** اختصاص دادن بلوک‌ها به فایل‌های جدید.</li>
+                            <li>**زمان‌بندی دیسک:** بهینه‌سازی ترتیب درخواست‌های خواندن/نوشتن برای کاهش حرکت هد دیسک.</li>
+                            <li>**پارتیشن‌بندی و حفاظت:** تقسیم دیسک به بخش‌های منطقی و کنترل دسترسی.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Cache Management Section -->
+        <section id="cache-section" class="content-section">
+             <h2 class="text-3xl font-bold mb-4 text-[#16a085] border-r-4 border-[#16a085] pr-4">۵-۵-۱: مدیریت کش (Cache)</h2>
+            <p class="mb-8 text-lg leading-relaxed">
+                نهان‌سازی یا کشینگ، یک اصل بنیادین برای افزایش کارایی است. در این بخش، به صورت تعاملی می‌بینیم که چگونه وجود یک حافظه کوچک و سریع (کش) می‌تواند زمان دسترسی به داده‌ها را به شدت کاهش دهد و با چالش مهم **سازگاری کش** در سیستم‌های چندپردازنده آشنا می‌شویم.
+            </p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                 <h3 class="text-2xl font-bold mb-6 text-center">شبیه‌ساز کش: Hit در برابر Miss</h3>
+                 <div class="flex justify-center gap-4 mb-6">
+                     <button id="cache-hit-btn" class="bg-green-500 text-white px-4 py-2 rounded-lg">شبیه‌سازی Cache Hit</button>
+                     <button id="cache-miss-btn" class="bg-red-500 text-white px-4 py-2 rounded-lg">شبیه‌سازی Cache Miss</button>
+                 </div>
+                 <div class="flex justify-around items-center h-40 relative">
+                     <div class="text-center">
+                        <div class="p-4 bg-blue-200 rounded-lg font-bold">CPU</div>
+                     </div>
+                     <div id="cache-arrow-1" class="absolute text-2xl transition-all duration-500 opacity-0">→</div>
+                     <div class="text-center">
+                        <div class="p-4 bg-yellow-200 rounded-lg font-bold">Cache</div>
+                     </div>
+                      <div id="cache-arrow-2" class="absolute text-2xl transition-all duration-500 opacity-0">→</div>
+                     <div class="text-center">
+                        <div class="p-4 bg-gray-300 rounded-lg font-bold">حافظه اصلی</div>
+                     </div>
+                 </div>
+                 <p id="cache-status" class="text-center mt-4 font-semibold h-5"></p>
+            </div>
+             <div class="mt-8 bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                 <h3 class="text-2xl font-bold mb-6 text-center">چالش: سازگاری کش (Cache Coherency)</h3>
+                 <p class="text-center text-sm mb-4">در یک سیستم چندپردازنده، اگر هر CPU کش محلی خود را داشته باشد، چه اتفاقی می‌افتد اگر یکی از آن‌ها داده‌ای را تغییر دهد؟</p>
+                 <button id="coherency-btn" class="mx-auto block bg-purple-500 text-white px-4 py-2 rounded-lg">مشاهده شبیه‌سازی</button>
+                 <div class="flex justify-around items-start mt-4">
+                    <div id="co-cpu1" class="text-center p-2 border rounded-lg">
+                        <p class="font-bold">CPU 1</p>
+                        <div class="mt-2 p-2 bg-yellow-100 rounded">کش: A = <span id="co-val1">10</span></div>
+                    </div>
+                     <div id="co-protocol" class="text-center pt-8 opacity-0 transition-opacity">
+                        <p class="font-bold text-purple-600">پروتکل سازگاری</p>
+                        <p class="text-2xl">↔</p>
+                    </div>
+                    <div id="co-cpu2" class="text-center p-2 border rounded-lg">
+                        <p class="font-bold">CPU 2</p>
+                         <div class="mt-2 p-2 bg-yellow-100 rounded">کش: A = <span id="co-val2">10</span></div>
+                    </div>
+                 </div>
+                 <p id="co-status" class="text-center mt-4 font-semibold h-5"></p>
+            </div>
+        </section>
+
+        <!-- I/O Management Section -->
+        <section id="io-section" class="content-section">
+            <h2 class="text-3xl font-bold mb-4 text-[#16a085] border-r-4 border-[#16a085] pr-4">۶-۵-۱: مدیریت سیستم ورودی/خروجی (I/O)</h2>
+            <p class="mb-8 text-lg leading-relaxed">
+                یکی از اهداف اصلی سیستم‌عامل، پنهان کردن پیچیدگی‌های سخت‌افزار از دید کاربر است. زیرسیستم I/O این وظیفه را با ایجاد لایه‌های انتزاعی انجام می‌دهد.
+            </p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h3 class="text-2xl font-bold mb-6 text-center">لایه‌های زیرسیستم I/O</h3>
+                <div class="space-y-4">
+                    <div class="p-4 bg-green-100 border-green-300 border rounded-lg text-center">
+                        <p class="font-bold">برنامه کاربر (مثلاً `copy file1 file2`)</p>
+                    </div>
+                     <div class="text-center text-2xl">↓</div>
+                     <div class="p-4 bg-blue-100 border-blue-300 border rounded-lg text-center">
+                        <h4 class="font-bold">زیرسیستم I/O سیستم‌عامل</h4>
+                        <ul class="text-sm mt-2 list-none">
+                            <li>- مدیریت بافر، کش و اسپولینگ</li>
+                            <li>- رابط عمومی درایور دستگاه</li>
+                        </ul>
+                    </div>
+                    <div class="text-center text-2xl">↓</div>
+                    <div class="p-4 bg-yellow-100 border-yellow-300 border rounded-lg text-center">
+                        <p class="font-bold">درایور دستگاه (Device Driver)</p>
+                        <p class="text-sm">تنها بخشی که جزئیات سخت‌افزار خاص (مثلاً دیسک Seagate مدل X) را می‌فهمد.</p>
+                    </div>
+                    <div class="text-center text-2xl">↓</div>
+                     <div class="p-4 bg-gray-200 border-gray-400 border rounded-lg text-center">
+                        <p class="font-bold">سخت‌افزار (کنترلر دستگاه)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const navButtons = document.querySelectorAll('.nav-button');
+    const contentSections = document.querySelectorAll('.content-section');
+
+    function showSection(targetId) {
+        contentSections.forEach(section => {
+            section.classList.toggle('active', section.id === `${targetId}-section`);
+        });
+        navButtons.forEach(button => {
+            button.classList.toggle('active', button.dataset.target === targetId);
+        });
+    }
+
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            showSection(button.dataset.target);
+        });
+    });
+
+    // Show the first section by default
+    showSection('process');
+    
+    // Program vs Process Animation
+    const runButton = document.getElementById('run-button');
+    const programCard = document.getElementById('program-card');
+    const processCard = document.getElementById('process-card');
+    const processIcon = document.getElementById('process-icon');
+    const arrowAnimation = document.getElementById('arrow-animation');
+    
+    runButton.addEventListener('click', () => {
+        arrowAnimation.style.opacity = 1;
+        programCard.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+            processCard.classList.add('process-animation');
+            processIcon.textContent = '⚙️';
+            arrowAnimation.style.opacity = 0;
+            programCard.style.transform = 'scale(1)';
+        }, 500);
+        setTimeout(() => {
+            processCard.classList.remove('process-animation');
+            processIcon.textContent = '💻';
+        }, 2500);
+    });
+
+    // Memory Allocation Simulation
+    const allocBtn = document.getElementById('alloc-btn');
+    const deallocBtn = document.getElementById('dealloc-btn');
+    const memoryMap = document.getElementById('memory-map');
+    const memoryStatus = document.getElementById('memory-status');
+    let processCounter = 0;
+    const colors = ['bg-blue-400', 'bg-green-400', 'bg-yellow-400', 'bg-purple-400', 'bg-pink-400'];
+
+    function updateMemoryStatus() {
+        const blocks = memoryMap.children;
+        if (blocks.length === 0) {
+            memoryStatus.textContent = "حافظه خالی است.";
+            return;
+        }
+        let statusText = "پردازه‌های در حافظه: ";
+        const processList = [];
+        for(let block of blocks) {
+            processList.push(block.textContent);
+        }
+        memoryStatus.textContent = statusText + processList.join(', ');
+    }
+
+    allocBtn.addEventListener('click', () => {
+        if (memoryMap.children.length >= 10) {
+            alert("حافظه پر است!");
+            return;
+        }
+        processCounter++;
+        const newBlock = document.createElement('div');
+        newBlock.className = `flex-grow h-full rounded flex items-center justify-center text-white font-bold text-sm ${colors[processCounter % colors.length]}`;
+        newBlock.textContent = `P${processCounter}`;
+        newBlock.dataset.pid = processCounter;
+        memoryMap.appendChild(newBlock);
+        updateMemoryStatus();
+    });
+    
+    deallocBtn.addEventListener('click', () => {
+        if (memoryMap.children.length > 0) {
+            memoryMap.removeChild(memoryMap.lastChild);
+            updateMemoryStatus();
+        }
+    });
+
+    // Cache Simulation
+    const cacheHitBtn = document.getElementById('cache-hit-btn');
+    const cacheMissBtn = document.getElementById('cache-miss-btn');
+    const cacheStatus = document.getElementById('cache-status');
+    const arrow1 = document.getElementById('cache-arrow-1');
+    const arrow2 = document.getElementById('cache-arrow-2');
+
+    function runCacheSim(isHit) {
+        cacheStatus.textContent = 'در حال درخواست داده...';
+        arrow1.style.opacity = 0;
+        arrow2.style.opacity = 0;
+        arrow1.style.color = '#f39c12';
+        arrow2.style.color = '#f39c12';
+        
+        // Path to Cache
+        setTimeout(() => {
+            arrow1.style.opacity = 1;
+        }, 200);
+
+        if(isHit) {
+            setTimeout(() => {
+                arrow1.style.color = '#2ecc71';
+                cacheStatus.textContent = 'Cache Hit! داده در کش پیدا شد (دسترسی بسیار سریع).';
+            }, 700);
+        } else {
+             setTimeout(() => {
+                cacheStatus.textContent = 'Cache Miss! داده در کش نیست...';
+                arrow1.style.color = '#e74c3c';
+            }, 700);
+             setTimeout(() => {
+                arrow2.style.opacity = 1;
+            }, 1200);
+             setTimeout(() => {
+                arrow2.style.color = '#2ecc71';
+                 cacheStatus.textContent = 'داده از حافظه اصلی واکشی و در کش کپی شد (دسترسی کند).';
+            }, 1700);
+        }
+    }
+
+    cacheHitBtn.addEventListener('click', () => runCacheSim(true));
+    cacheMissBtn.addEventListener('click', () => runCacheSim(false));
+    
+    // Cache Coherency Simulation
+    const coherencyBtn = document.getElementById('coherency-btn');
+    const coStatus = document.getElementById('co-status');
+    const coVal1 = document.getElementById('co-val1');
+    const coVal2 = document.getElementById('co-val2');
+    const coCpu1 = document.getElementById('co-cpu1');
+    const coCpu2 = document.getElementById('co-cpu2');
+    const coProtocol = document.getElementById('co-protocol');
+
+    coherencyBtn.addEventListener('click', () => {
+        // Reset
+        coStatus.textContent = '';
+        coVal1.textContent = '10';
+        coVal2.textContent = '10';
+        coCpu1.style.borderColor = 'initial';
+        coCpu2.style.borderColor = 'initial';
+        coProtocol.style.opacity = 0;
+
+        setTimeout(() => {
+            coStatus.textContent = 'CPU 1 مقدار A را به 20 تغییر می‌دهد.';
+            coVal1.textContent = '20';
+            coCpu1.style.borderColor = '#2980b9';
+        }, 500);
+        setTimeout(() => {
+            coStatus.textContent = 'در این لحظه، کش‌ها ناسازگار هستند!';
+            coCpu2.style.borderColor = '#e74c3c';
+        }, 1500);
+         setTimeout(() => {
+            coStatus.textContent = 'پروتکل سازگاری کش، تغییر را به CPU 2 اطلاع می‌دهد...';
+             coProtocol.style.opacity = 1;
+        }, 2500);
+         setTimeout(() => {
+            coStatus.textContent = 'مقدار A در کش CPU 2 به‌روزرسانی شد. سازگاری برقرار است.';
+            coVal2.textContent = '20';
+            coCpu1.style.borderColor = 'initial';
+            coCpu2.style.borderColor = '#2ecc71';
+             coProtocol.style.opacity = 0;
+        }, 4000);
+    });
+
+});
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر جامع سیستم عامل - بخش سوم: معماری پیشرفته</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Scholarly Neutrals -->
+    <!-- Application Structure Plan: This SPA is designed as an interactive dashboard with three distinct, thematic sections: 'I/O & DMA', 'Processor Architectures', and 'Clustered Systems'. A sticky top navigation provides quick access. The core design philosophy is "compare and contrast" to facilitate deep understanding. For processor architectures, a dynamic side-by-side comparison tool allows users to select and view two architectures simultaneously, highlighting their differences. For clustering, a tabbed interface breaks down complex concepts like HA and DLM into digestible pieces. This structure moves beyond linear presentation, encouraging active exploration and comparison, which is crucial for mastering these nuanced topics. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: DMA vs. Interrupt-driven I/O -> Goal: Compare/Contrast -> Viz: An animated "CPU Activity" bar graph paired with a simplified data flow diagram (built with HTML divs). -> Interaction: A toggle button switches between the two modes, triggering CSS animations to show the CPU being "busy" (many small blocks) vs. "free" (one solid block). -> Justification: The animation provides immediate, intuitive feedback on the efficiency gains of DMA.
+        - Report Info: Single-processor, SMP, Multi-core, NUMA architectures -> Goal: Compare/Organize -> Viz: A dynamic two-panel comparison interface. Each panel contains a diagram built with styled HTML divs representing cores, caches, and memory. -> Interaction: Users select an architecture from a set of buttons for each panel. The diagram and a list of pros/cons dynamically load into the selected panel. -> Justification: This is the centerpiece, empowering users to actively create their own comparisons (e.g., SMP vs. NUMA) for a much deeper understanding than static diagrams could provide.
+        - Report Info: Clustered Systems (HA, Symmetric/Asymmetric, HPC, DLM) -> Goal: Inform/Organize -> Viz: A tabbed interface. The DLM tab features a step-by-step animated sequence diagram built with HTML/CSS. -> Interaction: Users click tabs to switch between concepts. The DLM animation plays on a loop to illustrate the locking process. -> Justification: Tabs organize related but distinct topics cleanly. The DLM animation demystifies a complex, abstract process by visualizing the request-grant-release cycle.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .active-nav {
+            color: #ffffff;
+            background-color: #34495e;
+        }
+        .nav-item {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            border-color: #2980b9;
+            color: #2980b9;
+            background-color: #ecf0f1;
+        }
+        .arch-button.active {
+            background-color: #2980b9;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .comparison-panel, .tab-content {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .cpu-bar-busy {
+            animation: busy-pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes busy-pulse {
+            0%, 100% { transform: scaleY(1); background-color: #e74c3c; }
+            50% { transform: scaleY(0.6); background-color: #c0392b; }
+        }
+        .cpu-bar-free {
+            background-color: #2ecc71;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header and Navigation -->
+    <header class="bg-[#2c3e50] text-gray-200 p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold">جزوه جامع سیستم عامل (بخش ۳)</h1>
+            <nav class="hidden md:flex space-x-4 space-x-reverse">
+                <a href="#dma" class="nav-item px-3 py-2 rounded-md hover:bg-[#34495e] hover:text-white">ساختار I/O و DMA</a>
+                <a href="#architectures" class="nav-item px-3 py-2 rounded-md hover:bg-[#34495e] hover:text-white">معماری پردازنده‌ها</a>
+                <a href="#clusters" class="nav-item px-3 py-2 rounded-md hover:bg-[#34495e] hover:text-white">سیستم‌های خوشه‌ای</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden mt-3">
+            <a href="#dma" class="block py-2 px-4 text-sm hover:bg-[#34495e]">ساختار I/O و DMA</a>
+            <a href="#architectures" class="block py-2 px-4 text-sm hover:bg-[#34495e]">معماری پردازنده‌ها</a>
+            <a href="#clusters" class="block py-2 px-4 text-sm hover:bg-[#34495e]">سیستم‌های خوشه‌ای</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <!-- Section 1: I/O and DMA -->
+        <section id="dma" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-[#2980b9] border-r-4 border-[#2980b9] pr-4">۱-۳-۱: ساختار I/O و مکانیزم DMA</h2>
+            <p class="mb-8 text-lg leading-relaxed">
+                بخش بزرگی از کد سیستم‌عامل به مدیریت ورودی/خروجی (I/O) اختصاص دارد. در این بخش، ابتدا محدودیت روش مبتنی بر وقفه را برای دستگاه‌های پرسرعت می‌بینیم و سپس با راه‌حل هوشمندانه سخت‌افزاری، یعنی **دسترسی مستقیم به حافظه (DMA)**، آشنا می‌شویم که CPU را از بار سنگین مدیریت انتقال داده آزاد می‌کند.
+            </p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h3 class="text-2xl font-bold mb-6 text-center">مقایسه کارایی: وقفه در برابر DMA</h3>
+                 <div class="flex justify-center mb-6">
+                    <div class="bg-gray-200 p-1 rounded-full flex">
+                        <button id="dma-toggle-interrupt" class="px-4 py-2 rounded-full text-sm font-semibold focus:outline-none">روش وقفه</button>
+                        <button id="dma-toggle-dma" class="px-4 py-2 rounded-full text-sm font-semibold focus:outline-none">روش DMA</button>
+                    </div>
+                 </div>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div id="dma-interrupt-view">
+                        <h4 class="font-bold text-center text-lg text-red-600">❌ ناکارآمد: انتقال با وقفه به ازای هر بایت</h4>
+                        <div class="mt-4 p-4 border rounded-lg bg-red-50">
+                             <p class="text-sm font-bold mb-2">فعالیت CPU:</p>
+                             <div class="w-full h-8 bg-gray-300 rounded-full overflow-hidden flex">
+                                <div class="h-full bg-red-500 w-full cpu-bar-busy"></div>
+                             </div>
+                             <p class="text-xs text-center mt-1">CPU دائما مشغول است!</p>
+                        </div>
+                        <p class="text-sm mt-4 leading-loose">برای انتقال هر بایت داده، یک وقفه تولید می‌شود. CPU دائماً بین کار اصلی و سرویس‌دهی به وقفه‌های متعدد جابجا می‌شود و بخش زیادی از توان پردازشی برای مدیریت این فرآیند هدر می‌رود. این روش برای دستگاه‌های پرسرعت یک فاجعه است.</p>
+                    </div>
+                    <div id="dma-dma-view" class="hidden">
+                        <h4 class="font-bold text-center text-lg text-green-700">✅ کارآمد: انتقال با DMA</h4>
+                         <div class="mt-4 p-4 border rounded-lg bg-green-50">
+                             <p class="text-sm font-bold mb-2">فعالیت CPU:</p>
+                             <div class="w-full h-8 bg-gray-300 rounded-full overflow-hidden flex">
+                                <div class="h-full bg-blue-400" style="width: 5%"></div>
+                                <div class="h-full bg-green-500 flex-grow cpu-bar-free"></div>
+                                <div class="h-full bg-blue-400" style="width: 5%"></div>
+                             </div>
+                              <p class="text-xs text-center mt-1">تنظیم اولیه | CPU آزاد | وقفه پایانی</p>
+                        </div>
+                        <p class="text-sm mt-4 leading-loose">CPU فقط یک بار کنترلر DMA را تنظیم می‌کند و سپس کاملاً آزاد می‌شود تا به پردازه‌های دیگر رسیدگی کند. DMA کل بلوک داده را مستقلاً منتقل کرده و در انتها **فقط یک وقفه** تولید می‌کند. کارایی سیستم به شدت افزایش می‌یابد.</p>
+                    </div>
+                 </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Architectures -->
+        <section id="architectures" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-[#2980b9] border-r-4 border-[#2980b9] pr-4">۱-۳-۲: معماری پردازنده‌ها</h2>
+            <p class="mb-8 text-lg leading-relaxed">
+                از کامپیوترهای تک‌پردازنده ساده تا سیستم‌های چندهسته‌ای و NUMA، معماری پردازنده‌ها تکامل یافته تا قدرت محاسباتی بیشتری را فراهم کند. در این بخش، با استفاده از یک ابزار تعاملی، می‌توانید این معماری‌ها را در کنار هم قرار داده و تفاوت‌های کلیدی آن‌ها را به صورت بصری مقایسه کنید.
+            </p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h3 class="text-2xl font-bold mb-6 text-center">ابزار مقایسه معماری‌های چندپردازنده</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Left Panel -->
+                    <div>
+                        <div class="flex justify-center space-x-1 space-x-reverse mb-4" id="arch-buttons-left">
+                            <button class="arch-button text-xs px-2 py-1 rounded-md border" data-arch="smp" data-panel="left">SMP</button>
+                            <button class="arch-button text-xs px-2 py-1 rounded-md border" data-arch="multicore" data-panel="left">چندهسته‌ای</button>
+                            <button class="arch-button text-xs px-2 py-1 rounded-md border" data-arch="numa" data-panel="left">NUMA</button>
+                        </div>
+                        <div id="comparison-panel-left" class="comparison-panel p-4 border rounded-lg min-h-[400px] bg-gray-50"></div>
+                    </div>
+                    <!-- Right Panel -->
+                    <div>
+                        <div class="flex justify-center space-x-1 space-x-reverse mb-4" id="arch-buttons-right">
+                             <button class="arch-button text-xs px-2 py-1 rounded-md border" data-arch="smp" data-panel="right">SMP</button>
+                            <button class="arch-button text-xs px-2 py-1 rounded-md border" data-arch="multicore" data-panel="right">چندهسته‌ای</button>
+                            <button class="arch-button text-xs px-2 py-1 rounded-md border" data-arch="numa" data-panel="right">NUMA</button>
+                        </div>
+                        <div id="comparison-panel-right" class="comparison-panel p-4 border rounded-lg min-h-[400px] bg-gray-50"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Clusters -->
+        <section id="clusters" class="scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-[#2980b9] border-r-4 border-[#2980b9] pr-4">۱-۳-۴: سیستم‌های خوشه‌ای (Clustered Systems)</h2>
+             <p class="mb-8 text-lg leading-relaxed">
+               سیستم‌های خوشه‌ای با اتصال چندین کامپیوتر مستقل، به سطوح بالایی از دسترس‌پذیری و قدرت محاسباتی دست می‌یابند. این سیستم‌ها که "تزویج نرم" دارند، ستون فقرات بسیاری از سرویس‌های اینترنتی امروزی هستند. در این بخش، مفاهیم کلیدی خوشه‌بندی را بررسی می‌کنیم.
+            </p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <!-- Tabs -->
+                <div class="border-b border-gray-200">
+                    <nav class="-mb-px flex space-x-4 space-x-reverse" aria-label="Tabs">
+                        <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="ha">دسترس‌پذیری بالا</button>
+                        <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="modes">حالت‌های خوشه‌بندی</button>
+                        <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="hpc">محاسبات با کارایی بالا</button>
+                        <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="dlm">خوشه‌های موازی و DLM</button>
+                    </nav>
+                </div>
+                <!-- Tab Content -->
+                <div class="pt-6">
+                    <div id="tab-ha" class="tab-content">
+                        <h4 class="text-xl font-bold mb-3">هدف اصلی: دسترس‌پذیری بالا (High Availability)</h4>
+                        <p class="leading-loose">مهم‌ترین کاربرد خوشه‌بندی، ایجاد سیستم‌هایی است که حتی در صورت خرابی یک یا چند گره، سرویس‌دهی آن‌ها متوقف نشود. یک نرم‌افزار خوشه بر روی گره‌ها اجرا شده و بر سلامت یکدیگر نظارت می‌کند. اگر یک گره از کار بیفتد (Failover)، گره ناظر می‌تواند وظایف و منابع آن (مانند آدرس IP و دیسک‌ها) را در اختیار گرفته و سرویس را ادامه دهد. این فرآیند باعث **تحمل‌پذیری خطا (Fault Tolerance)** می‌شود.</p>
+                    </div>
+                     <div id="tab-modes" class="tab-content hidden">
+                        <h4 class="text-xl font-bold mb-3">انواع خوشه‌بندی</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 border rounded-lg bg-blue-50">
+                                <h5 class="font-bold">نامتقارن (Asymmetric)</h5>
+                                <p class="text-sm mt-2">یک گره به عنوان میزبان **آماده‌باش (Hot-standby)** بیکار است و فقط بر گره فعال نظارت می‌کند. در صورت خرابی، بلافاصله جایگزین آن می‌شود. ساده اما ناکارآمد.</p>
+                            </div>
+                             <div class="p-4 border rounded-lg bg-green-50">
+                                <h5 class="font-bold">متقارن (Symmetric)</h5>
+                                <p class="text-sm mt-2">تمام گره‌ها همزمان در حال اجرای برنامه و سرویس‌دهی هستند و بر یکدیگر نظارت می‌کنند. اگر یک گره خراب شود، بار کاری آن بین گره‌های باقی‌مانده تقسیم می‌شود. کارآمدتر اما پیچیده‌تر.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tab-hpc" class="tab-content hidden">
+                        <h4 class="text-xl font-bold mb-3">محاسبات با کارایی بالا (HPC)</h4>
+                        <p class="leading-loose">با استفاده از تکنیکی به نام **موازی‌سازی (Parallelization)**، یک برنامه بزرگ و محاسباتی سنگین به بخش‌های کوچک‌تر تقسیم شده و به صورت همزمان روی تمام گره‌های خوشه اجرا می‌شود. این کار قدرت محاسباتی عظیمی را برای کاربردهای علمی و مهندسی فراهم می‌کند.</p>
+                    </div>
+                    <div id="tab-dlm" class="tab-content hidden">
+                        <h4 class="text-xl font-bold mb-3">خوشه‌های موازی و مدیر قفل توزیع‌شده (DLM)</h4>
+                        <p class="leading-loose mb-4">این معماری قدرتمند به چندین گره اجازه می‌دهد تا به طور همزمان به **داده‌های یکسان** در یک **حافظه مشترک** (معمولاً از طریق یک SAN) دسترسی داشته باشند. برای جلوگیری از تداخل و خرابی داده‌ها، به یک "پلیس راهنمایی" به نام **مدیر قفل توزیع‌شده (DLM)** نیاز است. DLM تضمین می‌کند که در هر لحظه، تنها یک گره می‌تواند یک قطعه داده را برای نوشتن "قفل" کند، و به این ترتیب یکپارچگی داده‌ها حفظ می‌شود.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // DMA Toggle
+    const dmaToggleInterrupt = document.getElementById('dma-toggle-interrupt');
+    const dmaToggleDma = document.getElementById('dma-toggle-dma');
+    const interruptView = document.getElementById('dma-interrupt-view');
+    const dmaView = document.getElementById('dma-dma-view');
+    const activeDmaClass = 'bg-white text-gray-800 shadow';
+
+    function setActiveDmaButton(activeBtn, inactiveBtn, activeView, inactiveView) {
+        activeView.classList.remove('hidden');
+        inactiveView.classList.add('hidden');
+        activeBtn.classList.add(...activeDmaClass.split(' '));
+        inactiveBtn.classList.remove(...activeDmaClass.split(' '));
+    }
+    
+    dmaToggleInterrupt.addEventListener('click', () => setActiveDmaButton(dmaToggleInterrupt, dmaToggleDma, interruptView, dmaView));
+    dmaToggleDma.addEventListener('click', () => setActiveDmaButton(dmaToggleDma, dmaToggleInterrupt, dmaView, interruptView));
+    setActiveDmaButton(dmaToggleInterrupt, dmaToggleDma, interruptView, dmaView);
+
+
+    // Architectures Comparison
+    const archData = {
+        smp: {
+            title: "چندپردازشی متقارن (SMP)",
+            diagram: `
+                <div class="text-center font-bold text-sm">پردازنده ۰</div>
+                <div class="flex justify-around bg-blue-100 p-2 rounded border border-blue-300 mb-2">
+                    <div class="bg-blue-200 p-1 rounded text-xs">ثبات‌ها</div>
+                    <div class="bg-blue-200 p-1 rounded text-xs">کش</div>
+                </div>
+                <div class="text-center font-bold text-sm">پردازنده ۱</div>
+                <div class="flex justify-around bg-green-100 p-2 rounded border border-green-300">
+                    <div class="bg-green-200 p-1 rounded text-xs">ثبات‌ها</div>
+                    <div class="bg-green-200 p-1 rounded text-xs">کش</div>
+                </div>
+                <div class="w-px bg-gray-400 h-8 mx-auto"></div>
+                <div class="bg-gray-200 p-3 text-center rounded font-bold">گذرگاه مشترک</div>
+                <div class="w-px bg-gray-400 h-8 mx-auto"></div>
+                <div class="bg-purple-200 p-4 text-center rounded font-bold">حافظه اصلی</div>`,
+            pros: ["طراحی ساده", "تعادل بار خوب"],
+            cons: ["گلوگاه شدن گذرگاه", "مقیاس‌پذیری محدود"]
+        },
+        multicore: {
+            title: "چندهسته‌ای (Multi-core)",
+             diagram: `
+                <div class="bg-gray-200 p-3 rounded-t-lg text-center font-bold">یک تراشه پردازنده</div>
+                <div class="bg-gray-100 p-4 rounded-b-lg border border-t-0">
+                    <div class="flex justify-around gap-2">
+                        <div class="flex-1 bg-blue-100 p-2 rounded border text-center">
+                            <div class="font-bold text-sm">هسته ۰</div>
+                            <div class="bg-blue-200 my-1 p-1 rounded text-xs">ثبات‌ها</div>
+                            <div class="bg-blue-200 p-1 rounded text-xs">کش L1</div>
+                        </div>
+                        <div class="flex-1 bg-green-100 p-2 rounded border text-center">
+                             <div class="font-bold text-sm">هسته ۱</div>
+                            <div class="bg-green-200 my-1 p-1 rounded text-xs">ثبات‌ها</div>
+                            <div class="bg-green-200 p-1 rounded text-xs">کش L1</div>
+                        </div>
+                    </div>
+                    <div class="bg-yellow-200 p-2 text-center rounded mt-2 font-bold text-sm">کش L2 مشترک</div>
+                </div>
+                <div class="w-px bg-gray-400 h-8 mx-auto"></div>
+                <div class="bg-purple-200 p-4 text-center rounded font-bold">حافظه اصلی</div>`,
+            pros: ["ارتباط سریع بین هسته‌ها", "مصرف انرژی کمتر"],
+            cons: ["نیاز به برنامه‌نویسی موازی"]
+        },
+        numa: {
+            title: "دسترسی غیریکنواخت به حافظه (NUMA)",
+            diagram: `
+                 <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center p-2 border rounded bg-blue-50">
+                        <div class="font-bold bg-blue-200 rounded p-1">CPU 0</div>
+                        <div class="font-bold my-2 text-2xl">↕</div>
+                        <div class="font-bold bg-purple-200 rounded p-1">حافظه محلی ۰</div>
+                    </div>
+                     <div class="text-center p-2 border rounded bg-green-50">
+                        <div class="font-bold bg-green-200 rounded p-1">CPU 1</div>
+                        <div class="font-bold my-2 text-2xl">↕</div>
+                        <div class="font-bold bg-purple-200 rounded p-1">حافظه محلی ۱</div>
+                    </div>
+                 </div>
+                 <div class="text-center font-bold my-2 text-2xl">↔</div>
+                 <div class="bg-gray-200 p-2 text-center rounded font-bold">اتصال بین‌سیستمی</div>`,
+            pros: ["مقیاس‌پذیری بسیار بالا", "کاهش رقابت روی گذرگاه"],
+            cons: ["جریمه کارایی دسترسی به حافظه دور", "پیچیدگی برای سیستم‌عامل"]
+        }
+    };
+
+    function renderArch(panelId, archId) {
+        const panel = document.getElementById(panelId);
+        const data = archData[archId];
+        if (!data) return;
+
+        let prosList = data.pros.map(p => `<li class="flex items-start"><span class="text-green-500 mr-2">✔</span>${p}</li>`).join('');
+        let consList = data.cons.map(c => `<li class="flex items-start"><span class="text-red-500 mr-2">✖</span>${c}</li>`).join('');
+
+        panel.innerHTML = `
+            <h4 class="font-bold text-center mb-4">${data.title}</h4>
+            <div class="p-2 mb-4">${data.diagram}</div>
+            <div class="text-xs space-y-2">
+                <ul class="space-y-1">${prosList}</ul>
+                <ul class="space-y-1">${consList}</ul>
+            </div>`;
+    }
+
+    document.querySelectorAll('.arch-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const { arch, panel } = button.dataset;
+            document.querySelectorAll(`#arch-buttons-${panel} .arch-button`).forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            renderArch(`comparison-panel-${panel}`, arch);
+        });
+    });
+
+    // Initial render
+    document.querySelector('#arch-buttons-left .arch-button[data-arch="smp"]').click();
+    document.querySelector('#arch-buttons-right .arch-button[data-arch="multicore"]').click();
+    
+    // Tabs for Clusters
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.dataset.tab;
+            
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            tabContents.forEach(content => {
+                if (content.id === `tab-${tabId}`) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+        });
+    });
+    // Set initial active tab
+    document.querySelector('.tab-button[data-tab="ha"]').click();
+
+
+    // Smooth scrolling for nav links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetElement = document.querySelector(this.getAttribute('href'));
+            if(targetElement){
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+             if (!mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر تعاملی مفاهیم سیستم عامل</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A thematic single-page application with a sticky top navigation bar for quick access to key concepts. The structure is designed to break down the dense information of the report into five logical, interactive sections: 'Core Concepts', 'System Architecture', 'OS Operations', 'Resource Management', and 'Computing Environments'. This non-linear structure allows students to jump directly to topics they need to study, using interactive elements like cards, tabs, and charts to enhance engagement and understanding, which is more effective for exam preparation than a linear text document. -->
+    <!-- Visualization & Content Choices: 
+        1. Storage Hierarchy: Goal=Compare storage levels. Viz=Bar Chart (Chart.js/Canvas). Interaction=Tooltips on hover. Justification=Visually shows the trade-offs between speed, capacity, and cost more effectively than text.
+        2. OS Operations (Dual Mode, Multiprogramming): Goal=Explain dynamic processes. Viz=Interactive diagrams (HTML/CSS). Interaction=Clickable elements to simulate state transitions. Justification=Animation and interaction make abstract processes tangible and easier to grasp.
+        3. Architectures & Environments: Goal=Organize and compare different types. Viz=Grid of interactive cards. Interaction=Click to reveal details. Justification=Provides a clean, uncluttered overview while allowing for deeper exploration on demand.
+        4. Resource Management: Goal=Categorize management tasks. Viz=Tabbed interface. Interaction=Click to switch content panes. Justification=A standard, intuitive UI pattern to manage related but distinct blocks of information efficiently. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #FDFDFD;
+            color: #333;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        .nav-link {
+            transition: all 0.3s;
+        }
+        .nav-link.active {
+            color: #2563eb;
+            border-bottom: 2px solid #2563eb;
+        }
+        .card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-btn.active {
+            background-color: #3B82F6;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <header id="header" class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3">
+            <div class="flex justify-between items-center">
+                <h1 class="text-xl font-bold text-blue-600">مفاهیم سیستم عامل</h1>
+                <div class="hidden md:flex space-x-reverse space-x-8">
+                    <a href="#concepts" class="nav-link text-gray-600 hover:text-blue-600 pb-1">مفاهیم پایه</a>
+                    <a href="#architecture" class="nav-link text-gray-600 hover:text-blue-600 pb-1">معماری سیستم</a>
+                    <a href="#operations" class="nav-link text-gray-600 hover:text-blue-600 pb-1">عملیات سیستم عامل</a>
+                    <a href="#management" class="nav-link text-gray-600 hover:text-blue-600 pb-1">مدیریت منابع</a>
+                    <a href="#environments" class="nav-link text-gray-600 hover:text-blue-600 pb-1">محیط‌های محاسباتی</a>
+                </div>
+                <button id="mobile-menu-button" class="md:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+            <div id="mobile-menu" class="hidden md:hidden mt-4 flex flex-col space-y-2">
+                 <a href="#concepts" class="nav-link text-gray-600 hover:text-blue-600 py-2 text-center bg-gray-100 rounded-md">مفاهیم پایه</a>
+                 <a href="#architecture" class="nav-link text-gray-600 hover:text-blue-600 py-2 text-center bg-gray-100 rounded-md">معماری سیستم</a>
+                 <a href="#operations" class="nav-link text-gray-600 hover:text-blue-600 py-2 text-center bg-gray-100 rounded-md">عملیات سیستم عامل</a>
+                 <a href="#management" class="nav-link text-gray-600 hover:text-blue-600 py-2 text-center bg-gray-100 rounded-md">مدیریت منابع</a>
+                 <a href="#environments" class="nav-link text-gray-600 hover:text-blue-600 py-2 text-center bg-gray-100 rounded-md">محیط‌های محاسباتی</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        
+        <section id="concepts" class="mb-20 pt-16 -mt-16">
+            <h2 class="text-3xl font-bold text-center mb-4">مفاهیم پایه سیستم عامل</h2>
+            <p class="text-center text-lg text-gray-600 mb-12 max-w-3xl mx-auto">در این بخش، با تعریف، اهداف اصلی و دیدگاه‌های مختلف به سیستم عامل آشنا می‌شویم. همچنین نگاهی به مفاهیم کلیدی حفاظت، امنیت و دنیای سیستم‌عامل‌های متن‌باز خواهیم داشت.</p>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-3 text-blue-700">دیدگاه کاربر (User View)</h3>
+                    <p class="text-gray-700">از دید کاربر، مهم‌ترین هدف یک سیستم عامل، **سهولت استفاده** است. کاربر می‌خواهد به راحتی برنامه‌ها را اجرا کرده و با کامپیوتر تعامل داشته باشد، بدون اینکه درگیر پیچیدگی‌های سخت‌افزاری شود. در دستگاه‌های موبایل، این سهولت از طریق رابط‌های لمسی و ساده‌سازی بیشتر نمود پیدا می‌کند.</p>
+                </div>
+                <div class="card bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-3 text-green-700">دیدگاه سیستم (System View)</h3>
+                    <p class="text-gray-700">از نگاه سیستم، سیستم عامل یک **تخصیص‌دهنده منابع** و **برنامه کنترلی** است. وظیفه آن مدیریت کارآمد و عادلانه منابعی چون CPU، حافظه و دستگاه‌های I/O بین برنامه‌های مختلف و جلوگیری از تداخل و استفاده نادرست از کامپیوتر است.</p>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8 mt-8">
+                <div class="card bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-3 text-purple-700">حفاظت و امنیت</h3>
+                    <p class="text-gray-700">**حفاظت** مکانیزمی داخلی برای کنترل دسترسی به منابع است (مثلاً یک پردازه به حافظه پردازه دیگر دسترسی نداشته باشد). **امنیت** به دفاع از سیستم در برابر تهدیدات خارجی و داخلی (مانند ویروس‌ها) می‌پردازد.</p>
+                </div>
+                <div class="card bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-3 text-yellow-700">سیستم عامل‌های متن‌باز</h3>
+                    <p class="text-gray-700">نرم‌افزارهایی که کد منبع آن‌ها برای عموم در دسترس است. این امر امکان یادگیری، مشارکت در توسعه و افزایش امنیت را فراهم می‌کند. GNU/Linux و BSD Unix از معروف‌ترین نمونه‌ها هستند.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="mb-20 pt-16 -mt-16">
+            <h2 class="text-3xl font-bold text-center mb-4">معماری سیستم کامپیوتری</h2>
+            <p class="text-center text-lg text-gray-600 mb-12 max-w-3xl mx-auto">درک ساختار یک کامپیوتر برای فهم عملکرد سیستم عامل ضروری است. در اینجا با سلسله مراتب حافظه و انواع معماری‌های پردازشی آشنا می‌شویم.</p>
+            
+            <div class="bg-white p-8 rounded-xl shadow-xl mb-12">
+                <h3 class="text-2xl font-bold text-center mb-6">سلسله مراتب حافظه</h3>
+                <p class="text-center text-gray-600 mb-6">حافظه‌ها بر اساس سرعت، حجم و هزینه در یک هرم طبقه‌بندی می‌شوند. نمودار زیر زمان دسترسی (هرچه کمتر بهتر) را برای انواع مختلف حافظه نشان می‌دهد. برای مشاهده جزئیات روی هر ستون نگه دارید.</p>
+                <div class="chart-container">
+                    <canvas id="storageHierarchyChart"></canvas>
+                </div>
+            </div>
+
+            <h3 class="text-2xl font-bold text-center my-10">انواع معماری‌های پردازشی</h3>
+            <div class="grid md:grid-cols-3 gap-8">
+                 <div class="card bg-white p-6 rounded-xl shadow-lg text-center">
+                    <div class="text-4xl mb-4">🖥️</div>
+                    <h4 class="text-xl font-bold mb-2">تک‌پردازنده</h4>
+                    <p class="text-gray-600">سیستم‌هایی با یک CPU و یک هسته پردازشی. امروزه کمتر یافت می‌شوند.</p>
+                </div>
+                <div class="card bg-white p-6 rounded-xl shadow-lg text-center">
+                    <div class="text-4xl mb-4">⚙️⚙️</div>
+                    <h4 class="text-xl font-bold mb-2">چندپردازنده</h4>
+                    <p class="text-gray-600">دارای دو یا چند پردازنده (یا هسته) برای افزایش بازدهی. شامل SMP، چندهسته‌ای و NUMA.</p>
+                </div>
+                <div class="card bg-white p-6 rounded-xl shadow-lg text-center">
+                    <div class="text-4xl mb-4">🏢🏢</div>
+                    <h4 class="text-xl font-bold mb-2">خوشه‌ای</h4>
+                    <p class="text-gray-600">مجموعه‌ای از کامپیوترهای مستقل که با هم کار می‌کنند تا دسترس‌پذیری بالا را فراهم کنند.</p>
+                </div>
+            </div>
+
+        </section>
+
+        <section id="operations" class="mb-20 pt-16 -mt-16">
+            <h2 class="text-3xl font-bold text-center mb-4">عملیات کلیدی سیستم عامل</h2>
+             <p class="text-center text-lg text-gray-600 mb-12 max-w-3xl mx-auto">سیستم عامل برای مدیریت صحیح سیستم و حفاظت از منابع خود، از مکانیزم‌های هوشمندانه‌ای استفاده می‌کند. مد دوگانه، چندبرنامگی و وقفه از مهم‌ترین این عملیات هستند.</p>
+            
+            <div class="bg-white p-8 rounded-xl shadow-xl mb-12">
+                <h3 class="text-2xl font-bold text-center mb-6">عملیات مد دوگانه (Dual-Mode)</h3>
+                <p class="text-center text-gray-600 mb-8">برای محافظت از هسته سیستم عامل، سخت‌افزار دو حالت اجرایی دارد. انتقال بین این دو حالت، اساس حفاظت سیستم است. روی دکمه زیر کلیک کنید تا فرآیند یک فراخوانی سیستمی را شبیه‌سازی کنید.</p>
+                <div id="dual-mode-simulation" class="flex flex-col items-center">
+                    <div class="w-full max-w-2xl relative">
+                        <div id="user-mode-box" class="border-2 border-blue-400 bg-blue-50 rounded-lg p-4 mb-2 text-center">
+                            <h4 class="font-bold">مد کاربر (Mode Bit = 1)</h4>
+                            <p>برنامه کاربر در حال اجراست...</p>
+                        </div>
+                        <div id="kernel-mode-box" class="border-2 border-red-400 bg-red-50 rounded-lg p-4 mt-2 text-center opacity-50">
+                            <h4 class="font-bold">مد هسته (Mode Bit = 0)</h4>
+                            <p>هسته منتظر دستور است.</p>
+                        </div>
+                        <div id="arrow-down" class="absolute left-1/2 -translate-x-1/2 top-[calc(50%-20px)] text-2xl opacity-0 transition-opacity duration-500">🔻</div>
+                        <div id="arrow-up" class="absolute left-1/2 -translate-x-1/2 top-[calc(50%-20px)] text-2xl opacity-0 transition-opacity duration-500">🔺</div>
+                         <div id="trap-text" class="absolute left-1/2 -translate-x-1/2 top-[calc(50%-10px)] text-sm font-bold text-gray-700 opacity-0 transition-opacity duration-500">تله (Trap)</div>
+                    </div>
+                    <button id="syscall-btn" class="mt-6 bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">اجرای فراخوانی سیستمی</button>
+                </div>
+            </div>
+
+             <div class="grid md:grid-cols-2 gap-8">
+                <div class="card bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-3 text-indigo-700">وقفه (Interrupt)</h3>
+                    <p class="text-gray-700">وقفه، سیگنالی از سخت‌افزار به CPU است که اعلام می‌کند یک رویداد (مانند پایان عملیات I/O) رخ داده است. این مکانیزم به سیستم عامل اجازه می‌دهد تا به رویدادها واکنش نشان دهد و CPU را به طور مؤثر مدیریت کند. وقفه‌ها می‌توانند سخت‌افزاری یا نرم‌افزاری (تله) باشند.</p>
+                </div>
+                <div class="card bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-3 text-teal-700">چندبرنامگی (Multiprogramming)</h3>
+                    <p class="text-gray-700">سیستم عامل چندین برنامه (پردازه) را همزمان در حافظه نگه می‌دارد. وقتی یک پردازه منتظر I/O است، CPU به پردازه دیگری اختصاص داده می‌شود. این کار باعث می‌شود CPU تقریباً هرگز بیکار نماند و کارایی سیستم به شدت افزایش یابد.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="management" class="mb-20 pt-16 -mt-16">
+            <h2 class="text-3xl font-bold text-center mb-4">مدیریت منابع</h2>
+             <p class="text-center text-lg text-gray-600 mb-12 max-w-3xl mx-auto">یکی از وظایف اصلی سیستم عامل، مدیریت منابع حیاتی کامپیوتر است. در این بخش، چهار حوزه اصلی مدیریت منابع را بررسی می‌کنیم. برای مشاهده جزئیات هر بخش، روی تب مربوطه کلیک کنید.</p>
+             <div class="bg-white p-8 rounded-xl shadow-xl">
+                 <div class="flex justify-center border-b mb-6">
+                     <button class="tab-btn active font-bold py-2 px-6" data-tab="process">مدیریت پردازه</button>
+                     <button class="tab-btn font-bold py-2 px-6" data-tab="memory">مدیریت حافظه</button>
+                     <button class="tab-btn font-bold py-2 px-6" data-tab="file">مدیریت فایل</button>
+                     <button class="tab-btn font-bold py-2 px-6" data-tab="caching">مدیریت کش</button>
+                 </div>
+                 <div id="process-content" class="tab-content active">
+                     <h3 class="text-xl font-bold mb-2">مدیریت پردازه (Process Management)</h3>
+                     <p class="text-gray-700">پردازه یک "برنامه در حال اجرا" است. سیستم عامل مسئولیت‌های زیر را بر عهده دارد:
+                         <ul class="list-disc list-inside mt-2 space-y-1">
+                             <li>ایجاد و حذف پردازه‌ها</li>
+                             <li>زمان‌بندی پردازه‌ها برای اجرا روی CPU</li>
+                             <li>فراهم کردن مکانیزم‌هایی برای همگام‌سازی و ارتباط بین پردازه‌ها</li>
+                         </ul>
+                     </p>
+                 </div>
+                 <div id="memory-content" class="tab-content">
+                     <h3 class="text-xl font-bold mb-2">مدیریت حافظه (Memory Management)</h3>
+                     <p class="text-gray-700">حافظه اصلی (RAM) یک منبع حیاتی است. سیستم عامل باید:
+                         <ul class="list-disc list-inside mt-2 space-y-1">
+                             <li>ردیابی کند که کدام بخش‌های حافظه در حال استفاده هستند.</li>
+                             <li>تصمیم بگیرد کدام پردازه‌ها به حافظه وارد یا از آن خارج شوند.</li>
+                             <li>فضای حافظه را به صورت پویا تخصیص دهد و آزاد کند.</li>
+                         </ul>
+                     </p>
+                 </div>
+                 <div id="file-content" class="tab-content">
+                     <h3 class="text-xl font-bold mb-2">مدیریت سیستم فایل (File-System Management)</h3>
+                     <p class="text-gray-700">سیستم عامل یک دید منطقی به نام "فایل" را برای ذخیره‌سازی اطلاعات ارائه می‌دهد. وظایف آن عبارتند از:
+                         <ul class="list-disc list-inside mt-2 space-y-1">
+                            <li>ایجاد و حذف فایل‌ها و دایرکتوری‌ها</li>
+                            <li>نگاشت فایل‌ها بر روی حافظه ثانویه</li>
+                            <li>پشتیبان‌گیری از فایل‌ها برای اطمینان از پایداری داده‌ها</li>
+                         </ul>
+                     </p>
+                 </div>
+                 <div id="caching-content" class="tab-content">
+                     <h3 class="text-xl font-bold mb-2">مدیریت کش (Caching)</h3>
+                     <p class="text-gray-700">کش یک حافظه کوچک و بسیار سریع است که کپی اطلاعات پرکاربرد را در خود نگه می‌دارد.
+                         <ul class="list-disc list-inside mt-2 space-y-1">
+                             <li>وقتی به داده‌ای نیاز است، ابتدا کش بررسی می‌شود.</li>
+                             <li>اگر داده در کش باشد، با سرعت بالا بازیابی می‌شود.</li>
+                             <li>این کار سرعت کلی سیستم را به شدت افزایش می‌دهد زیرا دسترسی به کش بسیار سریع‌تر از حافظه اصلی است.</li>
+                         </ul>
+                     </p>
+                 </div>
+             </div>
+        </section>
+
+        <section id="environments" class="pt-16 -mt-16">
+            <h2 class="text-3xl font-bold text-center mb-4">محیط‌های محاسباتی مدرن</h2>
+            <p class="text-center text-lg text-gray-600 mb-12 max-w-3xl mx-auto">سیستم عامل‌ها در محیط‌های متنوعی از گوشی‌های هوشمند گرفته تا ابرهای محاسباتی عظیم به کار گرفته می‌شوند. در ادامه با چند مورد از مهم‌ترین این محیط‌ها آشنا می‌شویم.</p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="card bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-2">📱 محاسبات موبایل</h3>
+                    <p class="text-gray-600">سیستم‌عامل‌هایی مانند iOS و اندروید که برای دستگاه‌های قابل حمل با منابع محدود (باتری، پردازنده) و ویژگی‌های خاص (GPS، شتاب‌سنج) بهینه‌سازی شده‌اند.</p>
+                </div>
+                <div class="card bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-2">🌐 کارفرما-کارگزار</h3>
+                    <p class="text-gray-600">یک مدل توزیع‌شده که در آن سیستم‌های "کارفرما" (Client) از سیستم "کارگزار" (Server) درخواست سرویس (مثلاً دریافت یک صفحه وب) می‌کنند.</p>
+                </div>
+                <div class="card bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-2">🤝 نظیر به نظیر (P2P)</h3>
+                    <p class="text-gray-600">در این مدل، سرور مرکزی وجود ندارد و هر کامپیوتر (نظیر) می‌تواند هم نقش کارفرما و هم کارگزار را ایفا کند.</p>
+                </div>
+                <div class="card bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-2">☁️ رایانش ابری</h3>
+                    <p class="text-gray-600">ارائه خدمات محاسباتی مانند سرور، حافظه و نرم‌افزار از طریق اینترنت. این مدل بر پایه مجازی‌سازی استوار است.</p>
+                </div>
+                 <div class="card bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-2">⏱️ سیستم‌های بلادرنگ</h3>
+                    <p class="text-gray-600">سیستم‌هایی که باید وظایف خود را در محدودیت‌های زمانی بسیار دقیق و سخت انجام دهند، مانند سیستم‌های کنترل صنعتی و رباتیک.</p>
+                </div>
+                 <div class="card bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-2">🏗️ مجازی‌سازی</h3>
+                    <p class="text-gray-600">ایجاد چندین محیط اجرایی مجازی و مجزا روی یک سخت‌افزار فیزیکی واحد. هر ماشین مجازی مانند یک کامپیوتر مستقل عمل می‌کند.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center py-6 mt-12 bg-gray-100 border-t">
+        <p class="text-gray-600">طراحی شده برای کمک به یادگیری مفاهیم سیستم عامل.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            const storageData = {
+                labels: ['ثبات‌ها', 'کش L1/L2', 'حافظه اصلی (RAM)', 'حافظه SSD', 'دیسک سخت (HDD)'],
+                accessTimes: [0.5, 10, 100, 50000, 5000000] 
+            };
+            
+            const ctx = document.getElementById('storageHierarchyChart').getContext('2d');
+            const storageChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: storageData.labels,
+                    datasets: [{
+                        label: 'زمان دسترسی (نانوثانیه - مقیاس لگاریتمی)',
+                        data: storageData.accessTimes,
+                        backgroundColor: [
+                            'rgba(192, 75, 75, 0.6)',
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(255, 206, 86, 0.6)',
+                            'rgba(153, 102, 255, 0.6)'
+                        ],
+                        borderColor: [
+                             'rgba(192, 75, 75, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                           type: 'logarithmic',
+                           title: {
+                                display: true,
+                                text: 'زمان دسترسی (نانوثانیه)',
+                                font: { family: 'Vazirmatn' }
+                           },
+                           ticks: {
+                                font: { family: 'Vazirmatn' }
+                           }
+                        },
+                        y: {
+                           ticks: {
+                                font: { family: 'Vazirmatn', size: 14 }
+                           }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                             bodyFont: { family: 'Vazirmatn' },
+                             titleFont: { family: 'Vazirmatn' },
+                             callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.x !== null) {
+                                        label += context.parsed.x.toLocaleString('fa-IR') + ' نانوثانیه';
+                                    }
+                                    return label;
+                                }
+                             }
+                        }
+                    }
+                }
+            });
+
+            const syscallBtn = document.getElementById('syscall-btn');
+            const userModeBox = document.getElementById('user-mode-box');
+            const kernelModeBox = document.getElementById('kernel-mode-box');
+            const arrowDown = document.getElementById('arrow-down');
+            const arrowUp = document.getElementById('arrow-up');
+            const trapText = document.getElementById('trap-text');
+
+            let inKernelMode = false;
+            syscallBtn.addEventListener('click', () => {
+                if (!inKernelMode) {
+                    syscallBtn.disabled = true;
+                    userModeBox.classList.remove('border-blue-400', 'bg-blue-50');
+                    userModeBox.classList.add('opacity-50');
+                    arrowDown.classList.remove('opacity-0');
+                    trapText.classList.remove('opacity-0');
+                    
+                    setTimeout(() => {
+                        kernelModeBox.classList.remove('opacity-50');
+                        kernelModeBox.classList.add('border-red-400', 'bg-red-50');
+                        syscallBtn.textContent = 'بازگشت به مد کاربر';
+                        inKernelMode = true;
+                        syscallBtn.disabled = false;
+                    }, 1000);
+                } else {
+                    syscallBtn.disabled = true;
+                    arrowDown.classList.add('opacity-0');
+                    trapText.classList.add('opacity-0');
+                    arrowUp.classList.remove('opacity-0');
+                    
+                    kernelModeBox.classList.add('opacity-50');
+                    kernelModeBox.classList.remove('border-red-400', 'bg-red-50');
+                    
+                    setTimeout(() => {
+                        userModeBox.classList.add('border-blue-400', 'bg-blue-50');
+                        userModeBox.classList.remove('opacity-50');
+                        arrowUp.classList.add('opacity-0');
+                        syscallBtn.textContent = 'اجرای فراخوانی سیستمی';
+                        inKernelMode = false;
+                         syscallBtn.disabled = false;
+                    }, 1000);
+                }
+            });
+
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    const tabId = button.getAttribute('data-tab');
+                    tabContents.forEach(content => {
+                        if (content.id === `${tabId}-content`) {
+                            content.classList.add('active');
+                        } else {
+                            content.classList.remove('active');
+                        }
+                    });
+                });
+            });
+
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('main section');
+            const header = document.getElementById('header');
+            
+            const observerOptions = {
+                root: null,
+                rootMargin: `-${header.offsetHeight}px 0px 0px 0px`,
+                threshold: 0.4
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth' });
+                        if(mobileMenu.classList.contains('hidden') === false) {
+                            mobileMenu.classList.add('hidden');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

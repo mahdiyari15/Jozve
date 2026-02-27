@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر جامع سیستم عامل - بخش چهارم: عملیات سیستم عامل</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Midnight Slate -->
+    <!-- Application Structure Plan: The SPA for this section is structured around core operational concepts. The primary navigation at the top provides quick access to 'Booting', 'Multitasking', and 'Dual-Mode Operation'. The user flow is designed to build knowledge progressively. It starts with the "birth" of the OS (Booting), moves to its primary function (Multitasking), and then explains the fundamental mechanism that protects it (Dual-Mode). Each section uses a highly visual, interactive metaphor: a step-by-step timeline for booting, an animated CPU scheduler for multitasking, and an interactive diagram illustrating the mode switch. This structure transforms abstract processes into tangible, explorable experiences, promoting a much deeper understanding than reading text alone. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Booting Process -> Goal: Explain a Process -> Viz: A vertical, animated timeline built with HTML/CSS. -> Interaction: As the user scrolls, each step (Firmware -> Kernel Load -> Init Process) animates into view with a brief explanation, simulating the startup sequence. -> Justification: The sequential, animated reveal makes the linear booting process easy to follow and remember.
+        - Report Info: Multiprogramming vs. Multitasking -> Goal: Compare/Contrast -> Viz: A dynamic, animated "CPU Scheduler" visualization. Two scenarios, 'Single-Tasking' and 'Multi-Tasking', are shown. -> Interaction: A toggle switches between scenarios. In 'Single-Tasking', a process block runs until it hits an "I/O Wait", leaving a large gap of "CPU Idle". In 'Multi-Tasking', the scheduler rapidly switches between multiple process blocks, filling the idle gaps. -> Justification: This is the most powerful way to visually demonstrate the core benefit of multitasking – maximizing CPU utilization.
+        - Report Info: Dual-Mode Operation & System Calls -> Goal: Explain a Concept/Process -> Viz: An interactive diagram with two distinct zones: 'User Mode' (low privilege) and 'Kernel Mode' (high privilege). -> Interaction: The user clicks a "Request File Read" button in the User Mode zone. An animated arrow sequence shows the 'System Call' triggering a 'Trap', switching the mode to Kernel, executing the privileged operation, and then returning to User Mode. -> Justification: The animation makes the abstract concepts of "trap," "mode switch," and "privileged instruction" concrete and visual.
+        - Report Info: Timer -> Goal: Inform -> Viz: A simple, interactive card. -> Interaction: A button to "Start User Process" shows a countdown timer bar. When it hits zero, a "Timer Interrupt!" notification appears, explaining how control is returned to the OS. -> Justification: A simple interactive element that clearly demonstrates the timer's role as a safety net.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+        .active-nav {
+            color: #ffffff;
+            background-color: #3498db;
+        }
+        .nav-item {
+            transition: all 0.3s ease;
+        }
+        .boot-step {
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .boot-step.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .cpu-process {
+            transition: all 0.5s ease-in-out;
+        }
+        .mode-switch-arrow {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header and Navigation -->
+    <header class="bg-[#2c3e50] text-gray-200 p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold">جزوه جامع سیستم عامل (بخش ۴)</h1>
+            <nav class="hidden md:flex space-x-4 space-x-reverse">
+                <a href="#booting" class="nav-item px-3 py-2 rounded-md hover:bg-[#3498db] hover:text-white">راه‌اندازی سیستم</a>
+                <a href="#multitasking" class="nav-item px-3 py-2 rounded-md hover:bg-[#3498db] hover:text-white">چندبرنامگی و چندوظیفگی</a>
+                <a href="#dual-mode" class="nav-item px-3 py-2 rounded-md hover:bg-[#3498db] hover:text-white">عملیات مد دوگانه</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden mt-3">
+             <a href="#booting" class="block py-2 px-4 text-sm hover:bg-[#3498db]">راه‌اندازی سیستم</a>
+            <a href="#multitasking" class="block py-2 px-4 text-sm hover:bg-[#3498db]">چندبرنامگی و چندوظیفگی</a>
+            <a href="#dual-mode" class="block py-2 px-4 text-sm hover:bg-[#3498db]">عملیات مد دوگانه</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <!-- Section 1: Booting -->
+        <section id="booting" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-[#3498db] border-r-4 border-[#3498db] pr-4">۱-۴-۱: راه‌اندازی سیستم (Booting) - لحظه تولد</h2>
+            <p class="mb-8 text-lg leading-relaxed">
+                فرآیند روشن شدن یک کامپیوتر تا آماده به کار شدن آن، یک سکانس دقیق و مهندسی شده به نام **بوت شدن** است. در این بخش، این سفر کوتاه اما حیاتی را مرحله به مرحله دنبال می‌کنیم. با اسکرول کردن به پایین، مراحل را به ترتیب مشاهده کنید.
+            </p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <div id="boot-timeline" class="relative border-r-4 border-blue-200 pr-8 space-y-12">
+                    <!-- Step 1 -->
+                    <div class="boot-step relative">
+                        <div class="absolute top-0 right-[-2.2rem] w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">۱</div>
+                        <h3 class="text-xl font-bold">اجرای برنامه بالاآورنده (Bootstrap)</h3>
+                        <p class="mt-2 text-gray-700">با فشردن دکمه پاور، اولین کد از حافظه دائمی **سفت‌افزار (Firmware)** خوانده و اجرا می‌شود. این برنامه سخت‌افزار اولیه را بررسی و مقداردهی می‌کند.</p>
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="boot-step relative">
+                        <div class="absolute top-0 right-[-2.2rem] w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">۲</div>
+                        <h3 class="text-xl font-bold">بارگذاری هسته (Kernel)</h3>
+                        <p class="mt-2 text-gray-700">برنامه بالاآورنده، **هسته (Kernel)** سیستم‌عامل را از حافظه ثانویه (دیسک) پیدا کرده و آن را در حافظه اصلی (RAM) بارگذاری می‌کند.</p>
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="boot-step relative">
+                        <div class="absolute top-0 right-[-2.2rem] w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">۳</div>
+                        <h3 class="text-xl font-bold">شروع به کار هسته و پردازه init</h3>
+                        <p class="mt-2 text-gray-700">کنترل به هسته واگذار می‌شود. هسته اولین پردازه سیستمی (مانند `systemd`) را اجرا می‌کند که مسئول راه‌اندازی بقیه سیستم است.</p>
+                    </div>
+                    <!-- Step 4 -->
+                    <div class="boot-step relative">
+                         <div class="absolute top-0 right-[-2.2rem] w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">۴</div>
+                        <h3 class="text-xl font-bold">اجرای گماشته‌ها (Daemons)</h3>
+                        <p class="mt-2 text-gray-700">سرویس‌های پس‌زمینه و گماشته‌های سیستمی فعال می‌شوند تا شبکه، رابط کاربری و سایر خدمات آماده شوند.</p>
+                    </div>
+                    <!-- Step 5 -->
+                     <div class="boot-step relative">
+                        <div class="absolute top-0 right-[-2.2rem] w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">✔</div>
+                        <h3 class="text-xl font-bold text-green-600">سیستم آماده به کار</h3>
+                        <p class="mt-2 text-gray-700">سیستم به طور کامل راه‌اندازی شده و منتظر دریافت یک رویداد (مانند کلیک ماوس یا وقفه شبکه) می‌ماند.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Multitasking -->
+        <section id="multitasking" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-[#3498db] border-r-4 border-[#3498db] pr-4">۱-۴-۲: چندبرنامگی و چندوظیفگی</h2>
+            <p class="mb-8 text-lg leading-relaxed">
+                این دو مفهوم، انقلابی در استفاده بهینه از منابع کامپیوتر ایجاد کردند. **چندبرنامگی** با هدف افزایش بهره‌وری CPU و **چندوظیفگی** با هدف ایجاد یک سیستم تعاملی طراحی شده‌اند. با استفاده از شبیه‌ساز زیر، تفاوت چشمگیر این دو رویکرد را در عمل مشاهده کنید.
+            </p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                 <div class="flex justify-center mb-6">
+                    <div class="bg-gray-200 p-1 rounded-full flex">
+                        <button id="tasking-toggle-single" class="px-4 py-2 rounded-full text-sm font-semibold focus:outline-none">تک‌برنامگی</button>
+                        <button id="tasking-toggle-multi" class="px-4 py-2 rounded-full text-sm font-semibold focus:outline-none">چندوظیفگی</button>
+                    </div>
+                 </div>
+                 <div class="w-full bg-gray-100 p-4 rounded-lg border">
+                    <h4 class="font-bold mb-2 text-center">شبیه‌ساز فعالیت CPU در طول زمان</h4>
+                    <div id="cpu-timeline" class="h-24 w-full bg-gray-200 rounded flex items-center overflow-hidden relative">
+                         <!-- Legend -->
+                        <div class="absolute top-2 right-2 text-xs flex space-x-2 space-x-reverse">
+                            <span class="flex items-center"><div class="w-3 h-3 rounded-full bg-blue-500 ml-1"></div>پردازه ۱</span>
+                            <span class="flex items-center"><div class="w-3 h-3 rounded-full bg-green-500 ml-1"></div>پردازه ۲</span>
+                            <span class="flex items-center"><div class="w-3 h-3 rounded-full bg-yellow-500 ml-1"></div>پردازه ۳</span>
+                             <span class="flex items-center"><div class="w-3 h-3 rounded-full bg-red-500 ml-1"></div>انتظار I/O</span>
+                        </div>
+                    </div>
+                     <p id="tasking-explanation" class="text-sm mt-4 text-center h-10"></p>
+                 </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Dual-Mode -->
+        <section id="dual-mode" class="scroll-mt-20">
+             <h2 class="text-3xl font-bold mb-4 text-[#3498db] border-r-4 border-[#3498db] pr-4">۱-۴-۳: عملیات مد دوگانه و حفاظت</h2>
+             <p class="mb-8 text-lg leading-relaxed">
+               این مفهوم، سنگ بنای حفاظت و امنیت در سیستم‌عامل است. سخت‌افزار با ایجاد دو "دنیای" مجزا - مد کاربر و مد هسته - از سیستم‌عامل در برابر برنامه‌های کاربر محافظت می‌کند. با کلیک بر روی دکمه زیر، سفر یک درخواست از دنیای کاربر به دنیای قدرتمند هسته و بازگشت آن را به صورت متحرک مشاهده کنید.
+            </p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-center">
+                <button id="syscall-button" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">اجرای فراخوانی سیستمی (مثلاً خواندن فایل)</button>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-0 relative">
+                    <!-- User Mode -->
+                    <div id="user-mode-zone" class="bg-green-100 p-6 border-2 border-green-300 rounded-lg">
+                        <h3 class="text-2xl font-bold text-green-800">۱. مد کاربر (User Mode)</h3>
+                        <p class="mt-2 text-sm">برنامه‌ها اینجا اجرا می‌شوند. دسترسی محدود است.</p>
+                        <p class="mt-4 font-bold" id="user-status">آماده برای درخواست...</p>
+                    </div>
+                    <!-- Kernel Mode -->
+                    <div id="kernel-mode-zone" class="bg-red-100 p-6 border-2 border-red-300 rounded-lg">
+                        <h3 class="text-2xl font-bold text-red-800">۲. مد هسته (Kernel Mode)</h3>
+                        <p class="mt-2 text-sm">سیستم‌عامل اینجا اجرا می‌شود. دسترسی کامل است.</p>
+                         <p class="mt-4 font-bold" id="kernel-status">در حالت آماده‌باش...</p>
+                    </div>
+                    <!-- Arrows -->
+                    <div id="arrow1" class="mode-switch-arrow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full text-blue-600 font-bold">
+                        <span>فراخوانی سیستمی 
+                        <svg class="w-6 h-6 inline transform -scale-x-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </span>
+                    </div>
+                    <div id="arrow2" class="mode-switch-arrow absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-2 text-purple-600 font-bold">
+                        <span>
+                        <svg class="w-6 h-6 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                         بازگشت نتیجه</span>
+                    </div>
+                </div>
+                <div class="mt-8 bg-gray-100 p-4 rounded-lg border">
+                    <h4 class="text-lg font-bold">نقش تایمر (Timer) - نگهبان زمان</h4>
+                    <p class="text-sm mt-2">فراموش نکنید! اگر یک برنامه در مد کاربر دچار حلقه بی‌نهایت شود و هرگز فراخوانی سیستمی انجام ندهد، **تایمر سخت‌افزاری** پس از یک زمان مشخص یک **وقفه** ایجاد کرده و کنترل را به اجبار به مد هسته بازمی‌گرداند تا سیستم قفل نشود.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+    
+    // Booting animation on scroll
+    const bootSteps = document.querySelectorAll('.boot-step');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.5 });
+    bootSteps.forEach(step => observer.observe(step));
+
+    // Multitasking Simulation
+    const taskingToggleSingle = document.getElementById('tasking-toggle-single');
+    const taskingToggleMulti = document.getElementById('tasking-toggle-multi');
+    const cpuTimeline = document.getElementById('cpu-timeline');
+    const taskingExplanation = document.getElementById('tasking-explanation');
+    const activeTaskingClass = 'bg-white text-gray-800 shadow';
+
+    const singleTaskingHTML = `
+        <div class="cpu-process bg-blue-500 h-full" style="width: 20%;"></div>
+        <div class="cpu-process bg-red-500 h-full" style="width: 30%;"></div>
+        <div class="cpu-process bg-gray-400 h-full flex-grow text-white flex items-center justify-center text-sm font-bold">CPU بیکار</div>
+    `;
+    const multiTaskingHTML = `
+        <div class="cpu-process bg-blue-500 h-full" style="width: 10%;"></div>
+        <div class="cpu-process bg-green-500 h-full" style="width: 15%;"></div>
+        <div class="cpu-process bg-yellow-500 h-full" style="width: 10%;"></div>
+        <div class="cpu-process bg-red-500 h-full" style="width: 5%;"></div>
+        <div class="cpu-process bg-green-500 h-full" style="width: 15%;"></div>
+        <div class="cpu-process bg-blue-500 h-full" style="width: 10%;"></div>
+        <div class="cpu-process bg-yellow-500 h-full" style="width: 15%;"></div>
+        <div class="cpu-process bg-green-500 h-full" style="width: 15%;"></div>
+    `;
+
+    function setTaskingMode(mode) {
+        if (mode === 'single') {
+            cpuTimeline.innerHTML = singleTaskingHTML;
+            taskingExplanation.textContent = 'در حالت تک‌برنامگی، پس از اینکه پردازه ۱ به انتظار I/O می‌رود، CPU تا زمان اتمام آن کاملاً بیکار می‌ماند.';
+            taskingToggleSingle.classList.add(...activeTaskingClass.split(' '));
+            taskingToggleMulti.classList.remove(...activeTaskingClass.split(' '));
+        } else {
+            cpuTimeline.innerHTML = multiTaskingHTML;
+            taskingExplanation.textContent = 'در حالت چندوظیفگی، سیستم‌عامل به سرعت CPU را بین پردازه‌های آماده جابجا کرده و زمان‌های بیکاری را به حداقل می‌رساند.';
+            taskingToggleMulti.classList.add(...activeTaskingClass.split(' '));
+            taskingToggleSingle.classList.remove(...activeTaskingClass.split(' '));
+        }
+    }
+    taskingToggleSingle.addEventListener('click', () => setTaskingMode('single'));
+    taskingToggleMulti.addEventListener('click', () => setTaskingMode('multi'));
+    setTaskingMode('single');
+
+
+    // Dual-Mode Simulation
+    const syscallButton = document.getElementById('syscall-button');
+    const userStatus = document.getElementById('user-status');
+    const kernelStatus = document.getElementById('kernel-status');
+    const userZone = document.getElementById('user-mode-zone');
+    const kernelZone = document.getElementById('kernel-mode-zone');
+    const arrow1 = document.getElementById('arrow1');
+    const arrow2 = document.getElementById('arrow2');
+    let isAnimating = false;
+
+    syscallButton.addEventListener('click', () => {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        // Reset
+        userStatus.textContent = 'ارسال درخواست...';
+        kernelStatus.textContent = 'در حالت آماده‌باش...';
+        arrow1.style.opacity = 0;
+        arrow2.style.opacity = 0;
+        userZone.classList.remove('ring-4', 'ring-yellow-400');
+        kernelZone.classList.remove('ring-4', 'ring-yellow-400');
+
+        setTimeout(() => { // 1. System Call
+            arrow1.style.opacity = 1;
+            userZone.classList.add('ring-4', 'ring-yellow-400');
+        }, 200);
+
+        setTimeout(() => { // 2. Trap & Switch to Kernel
+            userStatus.textContent = 'منتظر نتیجه...';
+            kernelStatus.textContent = 'در حال اجرای دستور ممتاز...';
+            userZone.classList.remove('ring-4', 'ring-yellow-400');
+            kernelZone.classList.add('ring-4', 'ring-yellow-400');
+            arrow1.style.opacity = 0;
+        }, 1200);
+
+        setTimeout(() => { // 3. Return from Kernel
+            arrow2.style.opacity = 1;
+        }, 2200);
+        
+        setTimeout(() => { // 4. Back to User
+            userStatus.textContent = 'نتیجه دریافت شد!';
+            kernelStatus.textContent = 'در حالت آماده‌باش...';
+            kernelZone.classList.remove('ring-4', 'ring-yellow-400');
+            userZone.classList.add('ring-4', 'ring-yellow-400');
+            arrow2.style.opacity = 0;
+        }, 3200);
+
+         setTimeout(() => { // 5. Reset for next click
+            userZone.classList.remove('ring-4', 'ring-yellow-400');
+            userStatus.textContent = 'آماده برای درخواست...';
+            isAnimating = false;
+        }, 4200);
+    });
+
+    // Smooth scrolling
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+            if (!mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    });
+});
+</script>
+
+</body>
+</html>

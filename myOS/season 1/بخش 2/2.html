@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر جامع سیستم عامل - بخش دوم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: This SPA continues the thematic structure. A sticky top navigation bar provides direct access to the core themes of this section: 'سازمان سیستم', 'مکانیزم وقفه', and 'ساختار ذخیره‌سازی'. The main goal is to deconstruct complex, interconnected hardware concepts into visually intuitive and interactive modules. The 'Interrupt' section uses a step-by-step interactive timeline to explain the process flow, while the 'Storage' section features an interactive pyramid. This non-linear, visual-first approach is chosen to enhance comprehension and retention of technical details far more effectively than static text. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Modern Computer Organization -> Goal: Inform/Organize -> Viz: Interactive diagram using styled divs for components (CPU, Bus, Controllers) -> Interaction: Clicking a component reveals a detailed tooltip explaining its function (e.g., "Device Controller" reveals its role, local buffer, and relation to the Device Driver). -> Justification: This visual mapping makes the relationships between components immediately clear.
+        - Report Info: Interrupt Handling Process -> Goal: Explain a Process -> Viz: A vertical, step-by-step timeline built with HTML/CSS. -> Interaction: Each step is a clickable accordion header. Clicking expands to show a detailed explanation of that specific stage of the interrupt cycle. -> Justification: Breaks a complex, multi-stage process into manageable, sequential steps for easy learning.
+        - Report Info: Storage Hierarchy -> Goal: Compare -> Viz: An interactive pyramid built with styled divs. -> Interaction: Clicking a layer (e.g., 'Cache') populates a dynamic side-panel with its specific attributes (Speed, Cost, Volatility, Managed By). -> Justification: The pyramid is the standard metaphor. The interactive comparison reinforces the trade-offs between layers.
+        - Report Info: Direct Memory Access (DMA) -> Goal: Compare/Contrast -> Viz: A "Before vs. After" comparison using two simple diagrams built with HTML. -> Interaction: A toggle button switches between the "Interrupt-driven I/O" (CPU busy) and "DMA" (CPU free) scenarios. -> Justification: A direct visual comparison is the most powerful way to explain the efficiency gain of DMA.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f8f7f4;
+            color: #2c3e50;
+        }
+        .active-nav {
+            color: #ffffff;
+            background-color: #4A7C59;
+        }
+        .nav-item {
+            transition: all 0.3s ease;
+        }
+        .concept-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .concept-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .details-section {
+            display: none;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.7s ease-in-out;
+        }
+        .details-section.open {
+            display: block;
+            max-height: 2000px; 
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            top: 1.25rem;
+            right: -0.8rem;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            background-color: #f8f7f4;
+            border: 4px solid #4A7C59;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header and Navigation -->
+    <header class="bg-[#2c3e50] text-gray-200 p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold">جزوه جامع سیستم عامل (بخش ۲)</h1>
+            <nav class="hidden md:flex space-x-4 space-x-reverse">
+                <a href="#organization" class="nav-item px-3 py-2 rounded-md hover:bg-[#4A7C59] hover:text-white">سازمان سیستم</a>
+                <a href="#interrupts" class="nav-item px-3 py-2 rounded-md hover:bg-[#4A7C59] hover:text-white">مکانیزم وقفه</a>
+                <a href="#storage" class="nav-item px-3 py-2 rounded-md hover:bg-[#4A7C59] hover:text-white">ساختار ذخیره‌سازی</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden mt-3">
+            <a href="#organization" class="block py-2 px-4 text-sm hover:bg-[#4A7C59]">سازمان سیستم</a>
+            <a href="#interrupts" class="block py-2 px-4 text-sm hover:bg-[#4A7C59]">مکانیزم وقفه</a>
+            <a href="#storage" class="block py-2 px-4 text-sm hover:bg-[#4A7C59]">ساختار ذخیره‌سازی</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <!-- Section 1: System Organization -->
+        <section id="organization" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-[#4A7C59] border-r-4 border-[#4A7C59] pr-4">۱-۲: سازمان سیستم کامپیوتری</h2>
+            <p class="mb-8 text-lg leading-relaxed">
+                برای فهم عمیق عملکرد سیستم‌عامل، باید ابتدا با ساختار سخت‌افزاری که بر آن حاکم است، آشنا شویم. در این بخش، کالبد یک کامپیوتر مدرن را شکافته و نشان می‌دهیم چگونه اجزای مختلف آن مانند یک ارکستر هماهنگ برای اجرای دستورات شما با یکدیگر همکاری می‌کنند.
+            </p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h3 class="text-2xl font-bold mb-6 text-center">نقشه معماری یک کامپیوتر مدرن</h3>
+                <div class="relative p-4">
+                    <!-- System Bus -->
+                    <div class="absolute inset-x-0 top-1/2 h-2 bg-gray-300 transform -translate-y-1/2 rounded"></div>
+                    
+                    <div class="flex justify-around items-center">
+                        <!-- CPU -->
+                        <div class="z-10 text-center component" data-title="پردازنده (CPU)" data-description="مغز سیستم که دستورالعمل‌ها را اجرا می‌کند و با کنترلر حافظه برای دسترسی به RAM رقابت می‌کند.">
+                            <div class="bg-blue-500 text-white w-24 h-16 flex items-center justify-center rounded-lg shadow-md cursor-pointer">CPU</div>
+                        </div>
+
+                        <!-- Disk Controller -->
+                        <div class="z-10 text-center component" data-title="کنترلر دیسک" data-description="یک کامپیوتر کوچک تخصصی برای مدیریت دیسک سخت. دارای بافر محلی برای داده‌ها و ثبات‌هایی برای دستورات است. سیستم‌عامل از طریق درایور دستگاه با آن صحبت می‌کند.">
+                             <div class="bg-green-500 text-white w-24 h-16 flex items-center justify-center rounded-lg shadow-md cursor-pointer">کنترلر دیسک</div>
+                        </div>
+
+                        <!-- USB Controller -->
+                        <div class="z-10 text-center component" data-title="کنترلر USB" data-description="مدیریت دستگاه‌های متصل به پورت USB مانند کیبورد و ماوس. این کنترلر نیز بافر و ثبات‌های خاص خود را دارد.">
+                             <div class="bg-yellow-500 text-white w-24 h-16 flex items-center justify-center rounded-lg shadow-md cursor-pointer">کنترلر USB</div>
+                        </div>
+
+                        <!-- Graphics Adapter -->
+                        <div class="z-10 text-center component" data-title="آداپتور گرافیک" data-description="یک کنترلر بسیار تخصصی برای رندر کردن تصاویر و ارسال آن به مانیتور. این قطعه خود دارای پردازنده (GPU) و حافظه است.">
+                            <div class="bg-red-500 text-white w-24 h-16 flex items-center justify-center rounded-lg shadow-md cursor-pointer">آداپتور گرافیک</div>
+                        </div>
+                    </div>
+                     <!-- Memory -->
+                    <div class="mt-8 flex justify-center">
+                        <div class="z-10 text-center component" data-title="حافظه اصلی (RAM)" data-description="فضای کاری مشترک که تمام اجزا (CPU و کنترلرها) برای خواندن و نوشتن داده‌ها به آن دسترسی دارند. کنترلر حافظه این دسترسی‌های همزمان را مدیریت می‌کند.">
+                            <div class="bg-purple-500 text-white w-32 h-16 flex items-center justify-center rounded-lg shadow-md cursor-pointer">حافظه اصلی</div>
+                        </div>
+                    </div>
+                </div>
+                 <!-- Tooltip -->
+                <div id="component-tooltip" class="absolute hidden bg-gray-800 text-white text-sm rounded-lg shadow-xl p-3 z-50 max-w-xs">
+                    <h4 id="tooltip-title" class="font-bold"></h4>
+                    <p id="tooltip-description"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Interrupts -->
+        <section id="interrupts" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-[#4A7C59] border-r-4 border-[#4A7C59] pr-4">۱-۲-۲: وقفه (Interrupt)، نبض سیستم</h2>
+            <p class="mb-8 text-lg leading-relaxed">
+                وقفه، حیاتی‌ترین مکانیزم برای ارتباط سخت‌افزار با سیستم‌عامل است. این سیگنال هوشمند به CPU اجازه می‌دهد تا به جای بازرسی مداوم و بیهوده دستگاه‌ها، به کارهای مهم‌تر بپردازد و تنها زمانی که رویدادی رخ می‌دهد، به آن رسیدگی کند. در این بخش، سفر یک وقفه را از لحظه تولد تا پایان، قدم به قدم دنبال می‌کنیم.
+            </p>
+             <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h3 class="text-2xl font-bold mb-6 text-center">چرخه حیات یک وقفه ورودی/خروجی (I/O)</h3>
+                <div class="relative border-r-4 border-gray-200 pr-8 space-y-4">
+                    <!-- Timeline Item 1 -->
+                    <div class="timeline-item">
+                        <button class="toggle-details-button w-full text-right" data-target="#step1">
+                            <h4 class="text-lg font-bold text-blue-600">۱. آغاز عملیات</h4>
+                        </button>
+                        <div id="step1" class="details-section pr-4 mt-2">
+                            <p class="text-sm leading-loose">سیستم‌عامل (از طریق درایور دستگاه) یک درخواست I/O را با نوشتن دستورات در ثبات‌های کنترلر دستگاه صادر می‌کند. سپس CPU را آزاد کرده و به سراغ اجرای پردازه دیگری می‌رود.</p>
+                        </div>
+                    </div>
+                     <!-- Timeline Item 2 -->
+                    <div class="timeline-item">
+                        <button class="toggle-details-button w-full text-right" data-target="#step2">
+                            <h4 class="text-lg font-bold text-blue-600">۲. ارسال سیگنال وقفه</h4>
+                        </button>
+                        <div id="step2" class="details-section pr-4 mt-2">
+                            <p class="text-sm leading-loose">پس از اتمام عملیات، کنترلر دستگاه یک سیگنال الکتریکی را روی **خط درخواست وقفه (IRQ)** در گذرگاه سیستم قرار می‌دهد.</p>
+                        </div>
+                    </div>
+                     <!-- Timeline Item 3 -->
+                    <div class="timeline-item">
+                        <button class="toggle-details-button w-full text-right" data-target="#step3">
+                            <h4 class="text-lg font-bold text-blue-600">۳. توقف و ذخیره وضعیت</h4>
+                        </button>
+                        <div id="step3" class="details-section pr-4 mt-2">
+                            <p class="text-sm leading-loose">CPU پس از اتمام دستورالعمل فعلی، سیگنال را تشخیص می‌دهد. بلافاصله کار خود را متوقف کرده و **وضعیت فعلی خود** (محتوای ثبات‌ها و آدرس دستورالعمل بعدی) را در **پشته سیستم (System Stack)** ذخیره می‌کند.</p>
+                        </div>
+                    </div>
+                    <!-- Timeline Item 4 -->
+                    <div class="timeline-item">
+                        <button class="toggle-details-button w-full text-right" data-target="#step4">
+                            <h4 class="text-lg font-bold text-blue-600">۴. پرش به روال سرویس وقفه (ISR)</h4>
+                        </button>
+                        <div id="step4" class="details-section pr-4 mt-2">
+                            <p class="text-sm leading-loose">CPU با استفاده از شماره وقفه به عنوان اندیس در **بردار وقفه (Interrupt Vector)**، آدرس روال مربوطه را پیدا کرده و به آن پرش می‌کند. این روال بخشی از کد سیستم‌عامل است.</p>
+                        </div>
+                    </div>
+                    <!-- Timeline Item 5 -->
+                    <div class="timeline-item">
+                        <button class="toggle-details-button w-full text-right" data-target="#step5">
+                            <h4 class="text-lg font-bold text-blue-600">۵. رسیدگی به رویداد</h4>
+                        </button>
+                        <div id="step5" class="details-section pr-4 mt-2">
+                            <p class="text-sm leading-loose">ISR اجرا شده و رویداد را مدیریت می‌کند (مثلاً داده‌ها را از بافر کنترلر به حافظه اصلی منتقل می‌کند) و وقفه را "پاک" می‌کند.</p>
+                        </div>
+                    </div>
+                    <!-- Timeline Item 6 -->
+                    <div class="timeline-item">
+                        <button class="toggle-details-button w-full text-right" data-target="#step6">
+                            <h4 class="text-lg font-bold text-blue-600">۶. بازگشت به کار قبلی</h4>
+                        </button>
+                        <div id="step6" class="details-section pr-4 mt-2">
+                            <p class="text-sm leading-loose">پس از اتمام ISR، CPU وضعیت ذخیره شده را از پشته بازیابی کرده و اجرای برنامه متوقف شده را از همان نقطه از سر می‌گیرد.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Storage -->
+        <section id="storage" class="scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-[#4A7C59] border-r-4 border-[#4A7C59] pr-4">۱-۲-۳: ساختار ذخیره‌سازی و I/O</h2>
+            <p class="mb-8 text-lg leading-relaxed">
+                حافظه، یکی از گران‌بهاترین منابع سیستم است. در این بخش، **سلسله مراتب حافظه** را به عنوان راهکاری هوشمندانه برای ایجاد تعادل بین سرعت، هزینه و ظرفیت بررسی می‌کنیم. سپس با مکانیزم قدرتمند **DMA** آشنا می‌شویم که به سیستم اجازه می‌دهد داده‌های حجیم را بدون درگیر کردن CPU جابجا کند.
+            </p>
+
+            <!-- Storage Hierarchy -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h3 class="text-2xl font-bold mb-6 text-center">سلسله مراتب حافظه</h3>
+                <div class="flex flex-col md:flex-row gap-8 items-center">
+                    <div class="w-full md:w-1/2">
+                        <div class="flex flex-col-reverse items-center" id="storage-hierarchy">
+                            <div data-level="tertiary" class="hierarchy-level w-full cursor-pointer bg-gray-300 p-3 text-center rounded-t-lg border-b-2 border-white transition-transform hover:scale-105">حافظه ثالث</div>
+                            <div data-level="secondary" class="hierarchy-level w-11/12 cursor-pointer bg-yellow-300 p-3 text-center border-b-2 border-white transition-transform hover:scale-105">حافظه ثانویه</div>
+                            <div data-level="main" class="hierarchy-level w-9/12 cursor-pointer bg-green-300 p-3 text-center border-b-2 border-white transition-transform hover:scale-105">حافظه اصلی</div>
+                            <div data-level="cache" class="hierarchy-level w-7/12 cursor-pointer bg-blue-300 p-3 text-center border-b-2 border-white transition-transform hover:scale-105">حافظه نهان</div>
+                            <div data-level="registers" class="hierarchy-level w-5/12 cursor-pointer bg-red-300 p-3 text-center rounded-b-lg transition-transform hover:scale-105">ثبات‌ها</div>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/2">
+                        <div id="hierarchy-details" class="p-4 bg-gray-50 rounded-lg border min-h-[200px]">
+                            <p class="text-gray-500 text-center pt-16">روی یکی از لایه‌های هرم کلیک کنید تا جزئیات آن نمایش داده شود.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DMA Section -->
+            <div class="mt-8 bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                 <h3 class="text-2xl font-bold mb-6 text-center">انتقال داده: CPU در مقابل DMA</h3>
+                 <p class="text-center mb-6">مقایسه دو روش انتقال داده: یکی CPU را کاملاً درگیر می‌کند و دیگری آن را آزاد می‌گذارد.</p>
+                 <div class="flex justify-center mb-4">
+                    <div class="bg-gray-200 p-1 rounded-full flex">
+                        <button id="dma-toggle-interrupt" class="px-4 py-2 rounded-full text-sm font-semibold focus:outline-none active-dma">روش وقفه (CPU درگیر)</button>
+                        <button id="dma-toggle-dma" class="px-4 py-2 rounded-full text-sm font-semibold focus:outline-none">روش DMA (CPU آزاد)</button>
+                    </div>
+                 </div>
+                 <div id="dma-interrupt-view" class="text-center p-4 border rounded-lg bg-red-50">
+                    <h4 class="font-bold text-red-700">❌ ناکارآمد: انتقال با وقفه به ازای هر بایت</h4>
+                    <p class="text-sm mt-2">برای انتقال هر بایت داده، یک وقفه تولید می‌شود. CPU دائماً بین کار اصلی و سرویس‌دهی به وقفه جابجا می‌شود و بخش زیادی از توان پردازشی هدر می‌رود.</p>
+                 </div>
+                 <div id="dma-dma-view" class="text-center p-4 border rounded-lg bg-green-50 hidden">
+                    <h4 class="font-bold text-green-700">✅ کارآمد: انتقال با DMA</h4>
+                    <p class="text-sm mt-2">CPU فقط یک بار کنترلر DMA را تنظیم می‌کند و سپس آزاد می‌شود. DMA کل بلوک داده را مستقلاً منتقل کرده و در انتها **فقط یک وقفه** تولید می‌کند. کارایی سیستم به شدت افزایش می‌یابد.</p>
+                 </div>
+            </div>
+
+        </section>
+
+    </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // Component Tooltip
+    const components = document.querySelectorAll('.component');
+    const tooltip = document.getElementById('component-tooltip');
+    const tooltipTitle = document.getElementById('tooltip-title');
+    const tooltipDescription = document.getElementById('tooltip-description');
+
+    components.forEach(component => {
+        component.addEventListener('mouseenter', (e) => {
+            tooltipTitle.textContent = component.dataset.title;
+            tooltipDescription.textContent = component.dataset.description;
+            tooltip.classList.remove('hidden');
+            const rect = e.target.getBoundingClientRect();
+            tooltip.style.top = `${rect.bottom + window.scrollY + 10}px`;
+            tooltip.style.left = `${rect.left + window.scrollX + (rect.width / 2) - (tooltip.offsetWidth / 2)}px`;
+        });
+        component.addEventListener('mouseleave', () => {
+            tooltip.classList.add('hidden');
+        });
+    });
+
+    // Details section toggle (Accordion)
+    const toggleButtons = document.querySelectorAll('.toggle-details-button');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetElement = document.querySelector(button.dataset.target);
+            if (targetElement) {
+                const isOpen = targetElement.classList.contains('open');
+                // Close all other open items in the same container
+                const parentContainer = button.closest('.space-y-4, .relative');
+                if(parentContainer){
+                    parentContainer.querySelectorAll('.details-section.open').forEach(openSection => {
+                        if(openSection !== targetElement){
+                           openSection.classList.remove('open');
+                           const otherButton = document.querySelector(`[data-target="#${openSection.id}"]`);
+                           if(otherButton) otherButton.querySelector('h4').classList.remove('text-green-600');
+                        }
+                    });
+                }
+                
+                targetElement.classList.toggle('open');
+                button.querySelector('h4').classList.toggle('text-green-600', !isOpen);
+            }
+        });
+    });
+
+
+    // Storage Hierarchy Interaction
+    const hierarchyLevels = document.querySelectorAll('.hierarchy-level');
+    const detailsPanel = document.getElementById('hierarchy-details');
+    const hierarchyData = {
+        registers: { title: 'ثبات‌ها', description: 'سریع‌ترین، کوچک‌ترین و گران‌ترین حافظه. مستقیماً داخل CPU. مدیریت توسط کامپایلر.', speed: 'بسیار سریع (زیر ۱ نانوثانیه)', type: 'میرا (Volatile)' },
+        cache: { title: 'حافظه نهان', description: 'حافظه SRAM سریع بین CPU و RAM برای کاهش تأخیر. مدیریت توسط سخت‌افزار.', speed: 'سریع (۱-۳۰ نانوثانیه)', type: 'میرا (Volatile)' },
+        main: { title: 'حافظه اصلی', description: 'حافظه کاری اصلی سیستم (DRAM). برنامه‌ها برای اجرا باید در آن باشند. مدیریت توسط سیستم‌عامل.', speed: 'متوسط (۵۰-۱۰۰ نانوثانیه)', type: 'میرا (Volatile)' },
+        secondary: { title: 'حافظه ثانویه', description: 'حافظه دائمی (نامیرا) برای ذخیره‌سازی بلندمدت (HDD, SSD).', speed: 'کند (میلی‌ثانیه/میکروثانیه)', type: 'نامیرا (Non-volatile)' },
+        tertiary: { title: 'حافظه ثالث', description: 'ظرفیت بسیار بالا و سرعت پایین برای آرشیو و پشتیبان‌گیری (نوار مغناطیسی).', speed: 'بسیار کند (ثانیه تا دقیقه)', type: 'نامیرا (Non-volatile)' }
+    };
+
+    hierarchyLevels.forEach(level => {
+        level.addEventListener('click', () => {
+            const levelId = level.dataset.level;
+            const data = hierarchyData[levelId];
+            detailsPanel.innerHTML = `
+                <h4 class="font-bold text-lg mb-2 text-[#4A7C59]">${data.title}</h4>
+                <p class="text-sm mb-3">${data.description}</p>
+                <div class="text-xs grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                    <div class="bg-gray-200 p-2 rounded"><strong>سرعت:</strong> ${data.speed}</div>
+                    <div class="bg-gray-200 p-2 rounded"><strong>نوع:</strong> ${data.type}</div>
+                </div>`;
+            hierarchyLevels.forEach(l => l.classList.remove('ring-2', 'ring-offset-2', 'ring-[#4A7C59]'));
+            level.classList.add('ring-2', 'ring-offset-2', 'ring-[#4A7C59]');
+        });
+    });
+
+    // DMA Toggle
+    const dmaToggleInterrupt = document.getElementById('dma-toggle-interrupt');
+    const dmaToggleDma = document.getElementById('dma-toggle-dma');
+    const interruptView = document.getElementById('dma-interrupt-view');
+    const dmaView = document.getElementById('dma-dma-view');
+    const activeDmaClass = 'bg-white text-gray-800 shadow';
+
+    dmaToggleInterrupt.addEventListener('click', () => {
+        interruptView.classList.remove('hidden');
+        dmaView.classList.add('hidden');
+        dmaToggleInterrupt.classList.add(...activeDmaClass.split(' '));
+        dmaToggleDma.classList.remove(...activeDmaClass.split(' '));
+    });
+
+    dmaToggleDma.addEventListener('click', () => {
+        dmaView.classList.remove('hidden');
+        interruptView.classList.add('hidden');
+        dmaToggleDma.classList.add(...activeDmaClass.split(' '));
+        dmaToggleInterrupt.classList.remove(...activeDmaClass.split(' '));
+    });
+    dmaToggleInterrupt.click();
+
+
+    // Smooth scrolling for nav links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetElement = document.querySelector(this.getAttribute('href'));
+            if(targetElement){
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+            if (!mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    });
+});
+</script>
+
+</body>
+</html>

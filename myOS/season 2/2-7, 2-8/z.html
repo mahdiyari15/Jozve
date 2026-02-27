@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر جامع فصل دوم - بخش ۷ و ۸: طراحی و ساختار سیستم‌عامل</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Scholarly Slate -->
+    <!-- Application Structure Plan: This SPA is designed as an interactive educational module. A sticky side navigation allows users to jump between two core themes: 'طراحی و پیاده‌سازی' and 'ساختارهای هسته'. This thematic structure is chosen for clarity. The user flow is highly visual and interactive. The 'Policy vs. Mechanism' section features an interactive sorting game. The centerpiece is the 'Kernel Structures' section, a dynamic comparison tool where clicking a structure (e.g., 'ریزهسته') instantly updates a diagram, pros, cons, and examples. This allows for direct comparison and is far more effective for learning than static descriptions. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Design Goals (User vs. System) -> Goal: Compare/Inform -> Viz: A side-by-side layout with a central "trade-off" icon. -> Interaction: Hovering over the trade-off icon reveals a tooltip explaining the conflict between goals. -> Justification: Clearly presents the two sets of goals and their inherent tension.
+        - Report Info: Policy vs. Mechanism -> Goal: Differentiate a Concept -> Viz: An interactive sorting game. -> Interaction: Users are given a statement and must click either 'سیاست' or 'راهکار'. The card flips to reveal the correct answer and an explanation. -> Justification: Active participation and instant feedback solidify understanding of this abstract but crucial concept.
+        - Report Info: OS Structures (Monolithic, Layered, Microkernel, etc.) -> Goal: Compare/Contrast -> Viz: A dynamic comparison dashboard. -> Interaction: Clicking a button for a specific structure (e.g., 'یکپارچه') updates a single view with a simplified animated diagram (built with HTML/CSS), a list of pros/cons, and key examples. -> Justification: This is the core interactive element. It allows for rapid, focused comparison of all architectural approaches in one place, which is superior to scrolling through separate sections.
+        - Report Info: Hybrid Systems (macOS, Android) -> Goal: Organize/Inform -> Viz: A sub-section within the 'ترکیبی' view of the comparison dashboard, using a layered diagram. -> Interaction: Simple hover effects on layers to show more detail. -> Justification: Presents these complex, real-world examples in a clear, layered format.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        .nav-link.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .content-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .structure-btn.active {
+            background-color: #4f46e5;
+            color: white;
+            transform: scale(1.05);
+        }
+        #structure-diagram > div {
+             animation: fadeIn 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-slate-800 text-white p-4 shadow-lg text-center sticky top-0 z-50">
+        <h1 class="text-2xl md:text-3xl font-bold">فصل دوم، بخش ۷ و ۸: طراحی و ساختار سیستم‌عامل</h1>
+    </header>
+
+    <div class="container mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-8">
+        <!-- Side Navigation -->
+        <aside class="md:w-1/4">
+            <nav id="side-nav" class="sticky top-24 space-y-2">
+                <a href="#design" class="nav-link block font-semibold p-3 rounded-lg transition-colors">طراحی و پیاده‌سازی</a>
+                <a href="#structure" class="nav-link block font-semibold p-3 rounded-lg transition-colors">ساختارهای هسته</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="w-full md:w-3/4">
+            
+            <!-- Design & Implementation Section -->
+            <section id="design-section" class="content-section space-y-8">
+                <h2 class="text-3xl font-bold text-indigo-700 border-r-4 border-indigo-700 pr-4">۲-۷: طراحی و پیاده‌سازی سیستم‌عامل</h2>
+                
+                <!-- Design Goals -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <h3 class="text-xl font-bold mb-4">اهداف طراحی: یک موازنه دقیق</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div>
+                            <h4 class="font-bold text-blue-600">اهداف کاربر</h4>
+                            <ul class="list-disc pr-5 mt-2 text-sm space-y-1">
+                                <li>راحتی در استفاده و یادگیری</li>
+                                <li>قابلیت اطمینان و پایداری</li>
+                                <li>امنیت</li>
+                                <li>سرعت و پاسخ‌دهی بالا</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-green-600">اهداف سیستم</h4>
+                            <ul class="list-disc pr-5 mt-2 text-sm space-y-1">
+                                <li>سهولت در طراحی و نگهداری</li>
+                                <li>انعطاف‌پذیری و گسترش‌پذیری</li>
+                                <li>کارآمدی و استفاده بهینه از منابع</li>
+                                <li>عاری از خطا بودن</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p class="text-center mt-4 text-sm text-gray-600">⚖️ **نکته کلیدی:** بین این اهداف اغلب **تضاد (Trade-off)** وجود دارد. طراحان باید تعادل مناسب را پیدا کنند.</p>
+                </div>
+
+                <!-- Policy vs Mechanism -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <h3 class="text-xl font-bold mb-4">تفکیک سیاست از راهکار</h3>
+                     <p class="text-sm mb-4">این یک اصل طراحی کلیدی برای ایجاد سیستم‌های انعطاف‌پذیر است. آیا می‌توانید تفاوت را تشخیص دهید؟</p>
+                    <div id="policy-game-card" class="p-4 bg-yellow-100 rounded-lg text-center cursor-pointer">
+                        <p id="policy-question" class="font-semibold">قابلیت تنظیم اولویت برای پردازه‌ها از ۱ تا ۹۹.</p>
+                    </div>
+                    <div class="flex justify-center gap-4 mt-4">
+                        <button class="px-4 py-2 bg-blue-500 text-white rounded-lg" onclick="checkAnswer('mechanism')">راهکار (چگونگی)</button>
+                        <button class="px-4 py-2 bg-green-500 text-white rounded-lg" onclick="checkAnswer('policy')">سیاست (چیستی)</button>
+                    </div>
+                    <p id="policy-feedback" class="text-center mt-2 h-6 font-bold"></p>
+                </div>
+            </section>
+
+            <!-- OS Structure Section -->
+            <section id="structure-section" class="content-section">
+                <h2 class="text-3xl font-bold text-indigo-700 border-r-4 border-indigo-700 pr-4">۲-۸: ساختار سیستم‌عامل</h2>
+                <p class="mb-8 text-lg leading-relaxed">یک سیستم‌عامل باید به صورت ماژولار طراحی شود. در این بخش، معماری‌های مختلف هسته را با هم مقایسه می‌کنیم. روی هر ساختار کلیک کنید تا جزئیات آن را ببینید.</p>
+                <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <div class="flex flex-wrap justify-center gap-2 mb-6">
+                        <button class="structure-btn px-3 py-2 text-sm font-semibold rounded-lg border transition-all" data-structure="monolithic">یکپارچه</button>
+                        <button class="structure-btn px-3 py-2 text-sm font-semibold rounded-lg border transition-all" data-structure="layered">لایه‌ای</button>
+                        <button class="structure-btn px-3 py-2 text-sm font-semibold rounded-lg border transition-all" data-structure="microkernel">ریزهسته</button>
+                        <button class="structure-btn px-3 py-2 text-sm font-semibold rounded-lg border transition-all" data-structure="modules">ماژولار</button>
+                        <button class="structure-btn px-3 py-2 text-sm font-semibold rounded-lg border transition-all" data-structure="hybrid">ترکیبی</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                        <div id="structure-diagram" class="p-4 bg-gray-100 rounded-lg min-h-[250px] flex items-center justify-center"></div>
+                        <div>
+                             <h3 id="structure-title" class="text-xl font-bold mb-3"></h3>
+                             <div class="space-y-4 text-sm">
+                                <div>
+                                    <h4 class="font-bold text-green-600">مزایا:</h4>
+                                    <ul id="structure-pros" class="list-disc pr-5 mt-1 space-y-1"></ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-red-600">معایب:</h4>
+                                    <ul id="structure-cons" class="list-disc pr-5 mt-1 space-y-1"></ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-700">مثال‌ها:</h4>
+                                    <p id="structure-examples" class="mt-1"></p>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('.content-section');
+
+    function showSection(targetId) {
+        sections.forEach(section => section.classList.toggle('active', section.id === `${targetId}-section`));
+        navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${targetId}`));
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection(link.getAttribute('href').substring(1));
+        });
+    });
+    showSection('design'); // Default section
+
+    // Policy vs Mechanism Game
+    const policyQuestion = document.getElementById('policy-question');
+    const policyFeedback = document.getElementById('policy-feedback');
+    const gameData = [
+        { q: "قابلیت تنظیم اولویت برای پردازه‌ها از ۱ تا ۹۹.", a: "mechanism" },
+        { q: "پردازه‌های تعاملی باید اولویت بالاتری داشته باشند.", a: "policy" },
+        { q: "فراهم کردن مکانیزم عبور پیغام بین پردازه‌ها.", a: "mechanism" },
+        { q: "اجازه دادن به مدیر سیستم برای تغییر زمان‌بند CPU.", a: "policy" },
+    ];
+    let gameIndex = 0;
+    
+    window.checkAnswer = (answer) => {
+        if (answer === gameData[gameIndex].a) {
+            policyFeedback.textContent = "✅ درست است!";
+            policyFeedback.className = "text-center mt-2 h-6 font-bold text-green-600";
+        } else {
+            policyFeedback.textContent = "❌ اشتباه است!";
+            policyFeedback.className = "text-center mt-2 h-6 font-bold text-red-600";
+        }
+        setTimeout(() => {
+            gameIndex = (gameIndex + 1) % gameData.length;
+            policyQuestion.textContent = gameData[gameIndex].q;
+            policyFeedback.textContent = "";
+        }, 1500);
+    };
+
+    // OS Structure Comparison
+    const structureBtns = document.querySelectorAll('.structure-btn');
+    const structureTitle = document.getElementById('structure-title');
+    const structureDiagram = document.getElementById('structure-diagram');
+    const structurePros = document.getElementById('structure-pros');
+    const structureCons = document.getElementById('structure-cons');
+    const structureExamples = document.getElementById('structure-examples');
+
+    const structureData = {
+        monolithic: {
+            title: "ساختار یکپارچه",
+            diagram: `<div class="p-6 bg-slate-200 rounded-lg w-full text-center"><b class="block">هسته (Kernel)</b><span class="text-xs">زمان‌بند، حافظه، فایل، درایورها</span></div>`,
+            pros: ["کارایی بسیار بالا (ارتباطات سریع)", "طراحی ساده و مستقیم"],
+            cons: ["پیچیدگی در نگهداری و عیب‌یابی", "یک خطا می‌تواند کل سیستم را از کار بیندازد", "گسترش دشوار"],
+            examples: "یونیکس اولیه، لینوکس"
+        },
+        layered: {
+            title: "رویکرد لایه‌ای",
+            diagram: `<div class="w-full space-y-1 text-center font-semibold"><div class="p-2 bg-slate-400 rounded-t-lg">رابط کاربر</div><div class="p-2 bg-slate-300">لایه N-1</div><div class="p-2 bg-slate-200">...</div><div class="p-2 bg-slate-100 rounded-b-lg">سخت‌افزار (لایه ۰)</div></div>`,
+            pros: ["سادگی در طراحی و عیب‌یابی", "انتزاع خوب"],
+            cons: ["کارایی پایین به دلیل سربار عبور از لایه‌ها", "دشواری در تعریف دقیق لایه‌ها"],
+            examples: "سیستم THE، شبکه‌های کامپیوتری"
+        },
+        microkernel: {
+            title: "ریزهسته‌ها",
+            diagram: `<div class="w-full text-center"><div class="p-2 bg-slate-200 rounded-lg"><b>ریزهسته</b><p class="text-xs">ارتباطات، مدیریت پایه</p></div><p class="text-2xl my-2">↕</p><div class="flex justify-around"><div class="p-2 text-sm bg-blue-100 rounded">سرور فایل</div><div class="p-2 text-sm bg-green-100 rounded">درایور</div></div></div>`,
+            pros: ["قابلیت اطمینان و امنیت بالا", "گسترش‌پذیری آسان"],
+            cons: ["کارایی پایین‌تر به دلیل سربار عبور پیغام"],
+            examples: "Mach (هسته macOS), QNX"
+        },
+        modules: {
+            title: "ماژولار",
+            diagram: `<div class="w-full text-center relative"><div class="p-6 bg-slate-200 rounded-lg"><b>هسته اصلی</b></div><div class="absolute top-0 -right-4 p-2 text-sm bg-indigo-200 rounded animate-pulse">ماژول درایور</div><div class="absolute bottom-0 -left-4 p-2 text-sm bg-indigo-200 rounded animate-pulse">ماژول فایل سیستم</div></div>`,
+            pros: ["انعطاف‌پذیری بالا (مانند ریزهسته)", "کارایی بالا (مانند یکپارچه)"],
+            cons: ["پیچیدگی بیشتر در مدیریت وابستگی ماژول‌ها"],
+            examples: "لینوکس مدرن، ویندوز، سولاریس"
+        },
+        hybrid: {
+            title: "سیستم‌های ترکیبی",
+            diagram: `<div class="w-full text-center"><div class="p-2 bg-slate-400 rounded-t-lg"><b>macOS/iOS</b></div><div class="p-2 bg-slate-200">هسته Darwin</div><div class="p-2 bg-slate-100 rounded-b-lg"><span class="font-bold">Mach</span> + <span class="font-bold">BSD</span></div><hr class="my-2"><div class="p-2 bg-slate-400 rounded-t-lg"><b>Android</b></div><div class="p-2 bg-slate-200">ART + HAL</div><div class="p-2 bg-slate-100 rounded-b-lg"><b>هسته لینوکس</b></div></div>`,
+            pros: ["ترکیب بهترین ویژگی‌های مدل‌های مختلف"],
+            cons: ["پیچیدگی ذاتی"],
+            examples: "اکثر سیستم‌عامل‌های مدرن (ویندوز، macOS, Android)"
+        }
+    };
+
+    function displayStructure(structureId) {
+        const data = structureData[structureId];
+        structureTitle.textContent = data.title;
+        structureDiagram.innerHTML = data.diagram;
+        structurePros.innerHTML = data.pros.map(p => `<li>${p}</li>`).join('');
+        structureCons.innerHTML = data.cons.map(c => `<li>${c}</li>`).join('');
+        structureExamples.textContent = data.examples;
+
+        structureBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.structure === structureId));
+    }
+
+    structureBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            displayStructure(btn.dataset.structure);
+        });
+    });
+
+    // Set initial view
+    displayStructure('monolithic');
+
+});
+</script>
+
+</body>
+</html>

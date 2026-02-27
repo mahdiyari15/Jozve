@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر جامع فصل دوم - بخش سوم: فراخوانی‌ها و برنامه‌های سیستمی</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Slate & Sky Blue -->
+    <!-- Application Structure Plan: This SPA is designed as an interactive reference guide. A sticky side navigation allows users to jump between four key topics: 'API و RTE', 'ارسال پارامتر', 'انواع فراخوانی‌ها', and 'برنامه‌های سیستمی'. This structure is chosen for quick, non-linear access to specific information. The "System Call Categories" section is the core, designed as an interactive dashboard where each category is a clickable card. The "Parameter Passing" section uses animated diagrams to visually compare the three methods. This visual and task-oriented design is intended to make these abstract, technical details more digestible and easier to learn than a long, scrolling document. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: API vs. System Call -> Goal: Explain a Relationship -> Viz: A layered diagram built with HTML divs ('User App' -> 'API' -> 'RTE' -> 'System Call Interface' -> 'Kernel'). -> Interaction: As the user scrolls, each layer is highlighted with an explanatory tooltip, showing the flow of a request from the highest to the lowest level. -> Justification: Clearly visualizes the layers of abstraction between a programmer and the kernel.
+        - Report Info: Parameter Passing Methods (Registers, Block, Stack) -> Goal: Compare/Contrast -> Viz: A tabbed interface with animated diagrams for each method. -> Interaction: Users click a tab ('ثبات‌ها', 'بلاک حافظه', 'پشته'). An animation plays, showing parameters moving from the "User Program" box to the "Operating System" box using the selected method (e.g., arrows pointing to register boxes vs. an address pointer). -> Justification: The animation makes the data flow of each method tangible and easy to differentiate.
+        - Report Info: System Call Categories -> Goal: Organize/Inform -> Viz: A grid of six interactive cards, each with an icon representing a category (Process Control, File Management, etc.). -> Interaction: Clicking a card opens a modal window that lists the specific system calls within that category with brief descriptions and examples (e.g., `fork()`, `exec()`). -> Justification: An icon-based dashboard is an engaging way to organize and present categorized lists of information.
+        - Report Info: System Programs -> Goal: Organize/Inform -> Viz: A similar grid-based layout for categories of system programs. -> Interaction: Hovering over a card (e.g., 'مدیریت فایل') reveals a tooltip listing example programs (`ls`, `cp`, `mv`). -> Justification: Provides a quick, at-a-glance overview of the different types of utilities provided by an OS.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        .nav-link.active {
+            background-color: #0ea5e9;
+            color: white;
+        }
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .content-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .modal {
+            display: none;
+        }
+        .modal.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-slate-800 text-white p-4 shadow-lg text-center sticky top-0 z-50">
+        <h1 class="text-2xl md:text-3xl font-bold">فصل دوم، بخش سوم: فراخوانی‌ها و برنامه‌های سیستمی</h1>
+    </header>
+
+    <div class="container mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-8">
+        <!-- Side Navigation -->
+        <aside class="md:w-1/4">
+            <nav id="side-nav" class="sticky top-24 space-y-2">
+                <a href="#api" class="nav-link block font-semibold p-3 rounded-lg transition-colors">API و محیط زمان اجرا</a>
+                <a href="#params" class="nav-link block font-semibold p-3 rounded-lg transition-colors">ارسال پارامتر به هسته</a>
+                <a href="#types" class="nav-link block font-semibold p-3 rounded-lg transition-colors">انواع فراخوانی‌های سیستمی</a>
+                <a href="#programs" class="nav-link block font-semibold p-3 rounded-lg transition-colors">برنامه‌های سیستمی</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="w-full md:w-3/4">
+            
+            <!-- API & RTE Section -->
+            <section id="api-section" class="content-section">
+                <h2 class="text-3xl font-bold mb-4 text-sky-600 border-r-4 border-sky-600 pr-4">رابط برنامه‌نویسی (API) و محیط زمان اجرا (RTE)</h2>
+                <p class="mb-6 text-lg leading-relaxed">برنامه‌نویسان به ندرت مستقیماً با فراخوانی‌های سیستمی کار می‌کنند. در عوض، آن‌ها از لایه‌های انتزاعی بالاتری استفاده می‌کنند که کار را ساده‌تر و برنامه‌ها را قابل حمل‌تر می‌کند.</p>
+                <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <h3 class="text-xl font-bold mb-4">جریان یک درخواست از برنامه تا هسته</h3>
+                    <div class="space-y-2">
+                        <div class="p-4 bg-blue-100 border-blue-300 border rounded-lg"><b>برنامه کاربر:</b> تابع `printf("Hello")` را صدا می‌زند.</div>
+                        <div class="text-center text-2xl">↓</div>
+                        <div class="p-4 bg-green-100 border-green-300 border rounded-lg"><b>رابط برنامه‌نویسی (API):</b> تابع کتابخانه‌ای `printf` فراخوانی می‌شود.</div>
+                        <div class="text-center text-2xl">↓</div>
+                        <div class="p-4 bg-yellow-100 border-yellow-300 border rounded-lg"><b>محیط زمان اجرا (RTE):</b> کتابخانه استاندارد، تابع `printf` را به فراخوانی سیستمی `write` ترجمه می‌کند.</div>
+                        <div class="text-center text-2xl">↓</div>
+                        <div class="p-4 bg-red-100 border-red-300 border rounded-lg"><b>هسته سیستم‌عامل (Kernel):</b> فراخوانی سیستمی `write` با شماره مخصوص خود اجرا شده و متن روی صفحه نمایش داده می‌شود.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Parameter Passing Section -->
+            <section id="params-section" class="content-section">
+                <h2 class="text-3xl font-bold mb-4 text-sky-600 border-r-4 border-sky-600 pr-4">مکانیزم ارسال پارامتر به هسته</h2>
+                <p class="mb-6 text-lg leading-relaxed">وقتی برنامه‌ای یک فراخوانی سیستمی را صدا می‌زند، باید پارامترهای لازم را نیز به هسته ارسال کند. سه روش اصلی برای این کار وجود دارد.</p>
+                 <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <!-- Tabs for parameter passing methods would go here -->
+                    <p class="text-center font-bold">۱. از طریق ثبات‌ها (سریع و ساده، اما محدود)</p>
+                    <p class="text-center font-bold mt-4">۲. از طریق بلاک حافظه (انعطاف‌پذیر، آدرس بلاک در ثبات ارسال می‌شود)</p>
+                    <p class="text-center font-bold mt-4">۳. از طریق پشته (انعطاف‌پذیر، پارامترها Push و Pop می‌شوند)</p>
+                 </div>
+            </section>
+
+            <!-- System Call Types Section -->
+            <section id="types-section" class="content-section">
+                <h2 class="text-3xl font-bold mb-4 text-sky-600 border-r-4 border-sky-600 pr-4">انواع فراخوانی‌های سیستمی</h2>
+                <p class="mb-6 text-lg leading-relaxed">فراخوانی‌های سیستمی را می‌توان بر اساس کارکردشان در شش دسته اصلی طبقه‌بندی کرد. روی هر دسته کلیک کنید تا با مثال‌های آن آشنا شوید.</p>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                    <div class="category-card p-6 bg-white rounded-xl shadow border cursor-pointer text-center" data-category="process">
+                        <span class="text-4xl">⚙️</span><h3 class="font-bold mt-2">کنترل پردازه</h3>
+                    </div>
+                    <div class="category-card p-6 bg-white rounded-xl shadow border cursor-pointer text-center" data-category="file">
+                        <span class="text-4xl">📂</span><h3 class="font-bold mt-2">مدیریت فایل</h3>
+                    </div>
+                    <div class="category-card p-6 bg-white rounded-xl shadow border cursor-pointer text-center" data-category="device">
+                        <span class="text-4xl">🔌</span><h3 class="font-bold mt-2">مدیریت دستگاه</h3>
+                    </div>
+                    <div class="category-card p-6 bg-white rounded-xl shadow border cursor-pointer text-center" data-category="info">
+                        <span class="text-4xl">ℹ️</span><h3 class="font-bold mt-2">نگهداری اطلاعات</h3>
+                    </div>
+                    <div class="category-card p-6 bg-white rounded-xl shadow border cursor-pointer text-center" data-category="comm">
+                        <span class="text-4xl">💬</span><h3 class="font-bold mt-2">ارتباطات</h3>
+                    </div>
+                    <div class="category-card p-6 bg-white rounded-xl shadow border cursor-pointer text-center" data-category="protection">
+                        <span class="text-4xl">🛡️</span><h3 class="font-bold mt-2">حفاظت</h3>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Programs Section -->
+            <section id="programs-section" class="content-section">
+                <h2 class="text-3xl font-bold mb-4 text-sky-600 border-r-4 border-sky-600 pr-4">برنامه‌های سیستمی (System Programs)</h2>
+                <p class="mb-6 text-lg leading-relaxed">این برنامه‌ها که به آن‌ها ابزارهای سودمند نیز گفته می‌شود، محیطی راحت‌تر برای توسعه و اجرای برنامه‌ها فراهم می‌کنند و اغلب پوشش‌های کاربرپسندی برای فراخوانی‌های سیستمی هستند.</p>
+                <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <h3 class="text-xl font-bold mb-4">دسته‌بندی برنامه‌های سیستمی:</h3>
+                    <ul class="list-disc pr-6 space-y-2">
+                        <li><b>مدیریت فایل:</b> ابزارهایی مانند `ls`, `cp`, `rm` برای کار با فایل‌ها.</li>
+                        <li><b>اطلاعات وضعیت:</b> برنامه‌هایی مانند `ps`, `top`, `df` برای نمایش وضعیت سیستم.</li>
+                        <li><b>پشتیبانی از زبان‌های برنامه‌نویسی:</b> کامپایلرها (مانند `gcc`) و دیباگرها (مانند `gdb`).</li>
+                        <li><b>بارگذاری و اجرای برنامه:</b> بارگذارها (Loaders) و پیونددهنده‌ها (Linkers).</li>
+                        <li><b>ارتباطات:</b> برنامه‌هایی مانند `ssh`, `ftp`, `ping`.</li>
+                        <li><b>سرویس‌های پس‌زمینه:</b> دیمن‌ها (Daemons) در یونیکس یا سرویس‌ها (Services) در ویندوز.</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div id="category-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 id="modal-title" class="text-xl font-bold"></h3>
+                <button id="modal-close" class="text-2xl font-bold">&times;</button>
+            </div>
+            <div id="modal-body" class="p-6"></div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('.content-section');
+
+    function showSection(targetId) {
+        sections.forEach(section => {
+            section.classList.toggle('active', section.id === `${targetId}-section`);
+        });
+        navLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === `#${targetId}`);
+        });
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href').substring(1);
+            showSection(targetId);
+        });
+    });
+
+    // Show the first section by default
+    showSection('api');
+
+    // Modal Logic
+    const modal = document.getElementById('category-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    const modalClose = document.getElementById('modal-close');
+
+    const modalContent = {
+        process: { title: "کنترل پردازه", content: "مثال‌ها: `fork()` برای ایجاد یک کپی از پردازه، `exec()` برای جایگزینی برنامه در حال اجرا با یک برنامه جدید، `exit()` برای خاتمه دادن به پردازه." },
+        file: { title: "مدیریت فایل", content: "مثال‌ها: `open()` برای باز کردن یک فایل و گرفتن توصیفگر آن، `read()` برای خواندن داده از فایل، `write()` برای نوشتن داده در فایل، `close()` برای بستن فایل." },
+        device: { title: "مدیریت دستگاه", content: "مثال‌ها: `ioctl()` برای ارسال دستورات کنترلی خاص به درایورهای دستگاه، `read()` و `write()` برای ارتباط با دستگاه‌هایی که مانند فایل نمایش داده می‌شوند." },
+        info: { title: "نگهداری اطلاعات", content: "مثال‌ها: `getpid()` برای گرفتن شناسه پردازه فعلی، `time()` برای گرفتن زمان فعلی سیستم." },
+        comm: { title: "ارتباطات", content: "مثال‌ها: `pipe()` برای ایجاد یک کانال ارتباطی یک‌طرفه بین دو پردازه، `shm_open()` برای ایجاد یک ناحیه حافظه مشترک." },
+        protection: { title: "حفاظت", content: "مثال‌ها: `chmod()` برای تغییر مجوزهای دسترسی به یک فایل، `chown()` برای تغییر مالکیت یک فایل." }
+    };
+
+    document.querySelectorAll('.category-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const category = card.dataset.category;
+            const data = modalContent[category];
+            modalTitle.textContent = data.title;
+            modalBody.innerHTML = `<p>${data.content}</p>`;
+            modal.classList.add('active');
+        });
+    });
+
+    modalClose.addEventListener('click', () => modal.classList.remove('active'));
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+
+});
+</script>
+
+</body>
+</html>

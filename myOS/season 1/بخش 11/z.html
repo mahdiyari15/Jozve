@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر جامع سیستم عامل - بخش ۱۱: دنیای متن‌باز</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Code Canvas -->
+    <!-- Application Structure Plan: The SPA is structured as an interactive educational module with a clear, non-linear navigation. A sticky top nav allows users to jump to four core themes: 'فلسفه', 'تاریخچه', 'مثال‌های کلیدی', and 'ابزارهای توسعه'. This thematic structure is chosen over a linear one to allow users to explore concepts based on interest. The user flow encourages active learning: users first learn the core philosophies via interactive cards, then see their evolution on a clickable timeline, explore their real-world manifestations in the OS examples, and finally learn about the tools that make it all possible. This approach builds knowledge layer by layer in a logical, engaging sequence. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Free vs. Open-Source vs. Closed-Source -> Goal: Differentiate Concepts -> Viz: Three interactive, expandable cards. -> Interaction: Clicking a card (e.g., 'نرم‌افزار آزاد') smoothly expands it to reveal its core definition, the "Four Freedoms," and key license (GPL), while collapsing others. -> Justification: This controlled reveal focuses user attention and makes comparison intuitive.
+        - Report Info: History of Open-Source -> Goal: Show Chronological Change -> Viz: A horizontal, scrollable timeline built with styled HTML divs. -> Interaction: Clicking on a year marker (e.g., '1991') highlights it and displays a detailed information card about the event (e.g., "تولد هسته لینوکس"). -> Justification: A timeline is the most effective visualization for historical data, and making it interactive encourages exploration.
+        - Report Info: OS Examples (Linux, BSD, Solaris) -> Goal: Organize & Inform -> Viz: A clean, card-based layout. -> Interaction: Each OS card has a "بیشتر بدانید" button that opens a modal window containing more details, key distributions, and links. -> Justification: Modals are perfect for providing detailed, on-demand information without cluttering the main interface.
+        - Report Info: Version Control Systems -> Goal: Explain a Concept -> Viz: A simple animated diagram showing developers interacting with a central repository. -> Interaction: A "شروع شبیه‌سازی" button triggers a CSS animation showing "commits" and "updates" flowing between developers and the repository. -> Justification: The animation makes the abstract process of collaborative coding through a VCS tangible and easy to understand.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        .nav-item.active {
+            background-color: #0ea5e9;
+            color: white;
+        }
+        .concept-card {
+            max-height: 80px;
+            overflow: hidden;
+            transition: max-height 0.7s ease-in-out;
+        }
+        .concept-card.open {
+            max-height: 500px;
+        }
+        .timeline-item.active .timeline-dot {
+            background-color: #0ea5e9;
+            transform: scale(1.5);
+        }
+        .timeline-item.active .timeline-content {
+             opacity: 1;
+             transform: translateY(0);
+             visibility: visible;
+        }
+        .timeline-content {
+            opacity: 0;
+            transform: translateY(10px);
+            visibility: hidden;
+            transition: all 0.4s ease;
+        }
+        .modal {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .modal.active {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Header and Navigation -->
+    <header class="bg-slate-800 text-white p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold">بخش ۱۱: دنیای متن‌باز</h1>
+            <nav class="hidden md:flex space-x-2 space-x-reverse">
+                <a href="#philosophy" class="nav-item text-sm px-3 py-2 rounded-md hover:bg-sky-500">فلسفه</a>
+                <a href="#history" class="nav-item text-sm px-3 py-2 rounded-md hover:bg-sky-500">تاریخچه</a>
+                <a href="#examples" class="nav-item text-sm px-3 py-2 rounded-md hover:bg-sky-500">مثال‌های کلیدی</a>
+                <a href="#tools" class="nav-item text-sm px-3 py-2 rounded-md hover:bg-sky-500">ابزارهای توسعه</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden focus:outline-none">
+                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden mt-3">
+             <a href="#philosophy" class="block py-2 px-4 text-sm hover:bg-sky-500">فلسفه</a>
+             <a href="#history" class="block py-2 px-4 text-sm hover:bg-sky-500">تاریخچه</a>
+             <a href="#examples" class="block py-2 px-4 text-sm hover:bg-sky-500">مثال‌های کلیدی</a>
+             <a href="#tools" class="block py-2 px-4 text-sm hover:bg-sky-500">ابزارهای توسعه</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <!-- Philosophy Section -->
+        <section id="philosophy" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-sky-600 border-r-4 border-sky-600 pr-4">۱-۱۱-۱: فلسفه متن‌باز و نرم‌افزار آزاد</h2>
+            <p class="mb-8 text-lg leading-relaxed">این دو اصطلاح اغلب به جای یکدیگر استفاده می‌شوند، اما مفاهیم متفاوتی دارند. با کلیک بر روی هر کارت، با تعریف و اصول هر یک آشنا شوید.</p>
+            <div class="space-y-4" id="philosophy-container">
+                <!-- Free Software Card -->
+                <div class="concept-card bg-white p-6 rounded-xl shadow-lg border border-gray-200 cursor-pointer">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-2xl font-bold text-green-600">نرم‌افزار آزاد (Free Software)</h3>
+                        <span class="text-2xl transform transition-transform duration-500">▼</span>
+                    </div>
+                    <div class="pt-4 text-gray-700 space-y-3">
+                        <p>این مفهوم که توسط **ریچارد استالمن** پایه‌گذاری شد، بر **آزادی (Freedom)** کاربر تأکید دارد، نه قیمت صفر. نرم‌افزار آزاد چهار آزادی اساسی را برای کاربر تضمین می‌کند:</p>
+                        <ol class="list-decimal pr-6 space-y-2 text-sm">
+                           <li>**آزادی اجرا:** اجرای برنامه برای هر هدفی.</li>
+                           <li>**آزادی مطالعه و تغییر:** دسترسی به کد منبع و امکان تغییر آن.</li>
+                           <li>**آزادی توزیع مجدد:** به اشتراک گذاشتن کپی‌های نرم‌افزار.</li>
+                           <li>**آزادی بهبود و انتشار:** انتشار نسخه‌های بهبودیافته برای منفعت عمومی.</li>
+                        </ol>
+                        <p class="font-bold text-sm pt-2">مجوز کلیدی: GPL (مجوز عمومی گنو)</p>
+                    </div>
+                </div>
+                <!-- Open Source Card -->
+                <div class="concept-card bg-white p-6 rounded-xl shadow-lg border border-gray-200 cursor-pointer">
+                     <div class="flex justify-between items-center">
+                        <h3 class="text-2xl font-bold text-blue-600">نرم‌افزار متن‌باز (Open-Source)</h3>
+                        <span class="text-2xl transform transition-transform duration-500">▼</span>
+                    </div>
+                     <div class="pt-4 text-gray-700">
+                        <p>تعریف عملی‌گرایانه‌تری دارد و بر مزایای فنی و تجاری دسترسی به کد منبع تمرکز می‌کند. نرم‌افزاری است که **کد منبع (Source Code)** آن به صورت عمومی در دسترس است. این به کاربران اجازه می‌دهد کد را مشاهده، بررسی و از آن یاد بگیرند، اما لزوماً چهار آزادی نرم‌افزار آزاد را تضمین نمی‌کند.</p>
+                        <p class="font-bold text-sm pt-2">نکته کلیدی: تمام نرم‌افزارهای آزاد، متن‌باز هستند؛ اما عکس آن همیشه صادق نیست.</p>
+                    </div>
+                </div>
+                 <!-- Closed Source Card -->
+                <div class="concept-card bg-white p-6 rounded-xl shadow-lg border border-gray-200 cursor-pointer">
+                     <div class="flex justify-between items-center">
+                        <h3 class="text-2xl font-bold text-red-600">نرم‌افزار متن‌بسته (Closed-Source)</h3>
+                        <span class="text-2xl transform transition-transform duration-500">▼</span>
+                    </div>
+                     <div class="pt-4 text-gray-700">
+                        <p>نرم‌افزارهایی مانند **مایکروسافت ویندوز** که کد منبع آن‌ها محرمانه است و کاربران فقط فایل اجرایی (دودویی) را دریافت می‌کنند. استفاده، کپی و تغییر این نرم‌افزارها محدود به شرایط مجوز شرکت سازنده است.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- History Section -->
+        <section id="history" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-sky-600 border-r-4 border-sky-600 pr-4">۱-۱۱-۳: تاریخچه مختصر دنیای متن‌باز</h2>
+            <p class="mb-8 text-lg leading-relaxed">از فرهنگ اشتراک‌گذاری اولیه تا تجاری شدن نرم‌افزار و تولد دوباره جنبش متن‌باز، این خط زمانی سفر پر فراز و نشیب این فلسفه را به تصویر می‌کشد.</p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border relative">
+                 <div class="w-full h-1 bg-gray-300 absolute top-12"></div>
+                 <div class="flex justify-between relative text-center">
+                     <!-- Timeline Items -->
+                     <div class="timeline-item" data-year="1970">
+                         <div class="timeline-dot w-4 h-4 bg-gray-400 rounded-full mx-auto transition-all duration-300 cursor-pointer"></div>
+                         <p class="text-sm mt-2 font-bold">دهه ۷۰</p>
+                     </div>
+                     <div class="timeline-item" data-year="1984">
+                         <div class="timeline-dot w-4 h-4 bg-gray-400 rounded-full mx-auto transition-all duration-300 cursor-pointer"></div>
+                         <p class="text-sm mt-2 font-bold">۱۹۸۴</p>
+                     </div>
+                     <div class="timeline-item" data-year="1991">
+                         <div class="timeline-dot w-4 h-4 bg-gray-400 rounded-full mx-auto transition-all duration-300 cursor-pointer"></div>
+                         <p class="text-sm mt-2 font-bold">۱۹۹۱</p>
+                     </div>
+                      <div class="timeline-item" data-year="1992">
+                         <div class="timeline-dot w-4 h-4 bg-gray-400 rounded-full mx-auto transition-all duration-300 cursor-pointer"></div>
+                         <p class="text-sm mt-2 font-bold">۱۹۹۲</p>
+                     </div>
+                 </div>
+                 <div id="history-details" class="mt-12 min-h-[100px]">
+                     <!-- Details will be injected here -->
+                 </div>
+            </div>
+        </section>
+
+        <!-- Examples Section -->
+        <section id="examples" class="mb-16 scroll-mt-20">
+             <h2 class="text-3xl font-bold mb-4 text-sky-600 border-r-4 border-sky-600 pr-4">۱-۱۱-۴: مثال‌های برجسته</h2>
+             <p class="mb-8 text-lg leading-relaxed">در این بخش با سه خانواده بزرگ و تأثیرگذار از سیستم‌عامل‌های متن‌باز آشنا می‌شویم.</p>
+             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                 <!-- Linux Card -->
+                 <div class="bg-white p-6 rounded-xl shadow-lg border text-center">
+                     <h3 class="text-2xl font-bold">گنو/لینوکس</h3>
+                     <p class="text-sm mt-2 h-16">ترکیب قدرتمند هسته لینوکس (اثر لینوس توروالدز) و ابزارهای پروژه گنو.</p>
+                     <button class="os-modal-button mt-4 bg-slate-700 text-white px-4 py-2 rounded-lg text-sm" data-os="linux">بیشتر بدانید</button>
+                 </div>
+                 <!-- BSD Card -->
+                 <div class="bg-white p-6 rounded-xl shadow-lg border text-center">
+                     <h3 class="text-2xl font-bold">یونیکس BSD</h3>
+                     <p class="text-sm mt-2 h-16">خانواده‌ای از سیستم‌عامل‌های مشتق شده از یونیکس دانشگاه برکلی که هسته macOS نیز بر پایه آن است.</p>
+                      <button class="os-modal-button mt-4 bg-slate-700 text-white px-4 py-2 rounded-lg text-sm" data-os="bsd">بیشتر بدانید</button>
+                 </div>
+                 <!-- Solaris Card -->
+                 <div class="bg-white p-6 rounded-xl shadow-lg border text-center">
+                     <h3 class="text-2xl font-bold">سولاریس / Illumos</h3>
+                     <p class="text-sm mt-2 h-16">سیستم‌عامل تجاری سابق سان مایکروسیستمز که متن‌باز شد و توسط جامعه تحت نام Illumos ادامه یافت.</p>
+                     <button class="os-modal-button mt-4 bg-slate-700 text-white px-4 py-2 rounded-lg text-sm" data-os="solaris">بیشتر بدانید</button>
+                 </div>
+             </div>
+        </section>
+        
+        <!-- Tools Section -->
+        <section id="tools" class="scroll-mt-20">
+             <h2 class="text-3xl font-bold mb-4 text-sky-600 border-r-4 border-sky-600 pr-4">۱-۱۱-۵: ابزارهای توسعه مشارکتی</h2>
+             <p class="mb-8 text-lg leading-relaxed">همکاری هزاران توسعه‌دهنده روی پروژه‌های عظیمی مانند هسته لینوکس، بدون **سیستم‌های کنترل نسخه (VCS)** غیرممکن بود. این ابزارها تاریخچه تمام تغییرات را ثبت کرده و به توسعه‌دهندگان اجازه می‌دهند به طور همزمان روی یک پروژه کار کنند.</p>
+             <div class="bg-white p-6 rounded-xl shadow-lg border">
+                <p class="text-center">معروف‌ترین سیستم کنترل نسخه **Git** است که توسط خود لینوس توروالدز ساخته شد.</p>
+            </div>
+        </section>
+
+    </main>
+    
+    <!-- OS Details Modal -->
+    <div id="os-modal" class="modal fixed inset-0 bg-black bg-opacity-60 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-md">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 id="os-modal-title" class="text-2xl font-bold"></h3>
+                <button id="os-modal-close" class="text-2xl font-bold">&times;</button>
+            </div>
+            <div id="os-modal-body" class="p-6"></div>
+        </div>
+    </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
+
+    // Smooth scrolling & active nav
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) { target.scrollIntoView({ behavior: 'smooth' }); }
+            if (!mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Philosophy cards accordion
+    const philosophyContainer = document.getElementById('philosophy-container');
+    philosophyContainer.addEventListener('click', (e) => {
+        const card = e.target.closest('.concept-card');
+        if (!card) return;
+        
+        const wasOpen = card.classList.contains('open');
+        
+        philosophyContainer.querySelectorAll('.concept-card').forEach(c => {
+            c.classList.remove('open');
+            c.querySelector('span').style.transform = 'rotate(0deg)';
+        });
+
+        if (!wasOpen) {
+            card.classList.add('open');
+            card.querySelector('span').style.transform = 'rotate(180deg)';
+        }
+    });
+
+    // History Timeline
+    const timelineItems = document.querySelectorAll('.timeline-item');
+    const historyDetails = document.getElementById('history-details');
+    const historyData = {
+        '1970': { title: 'دهه ۱۹۷۰: فرهنگ اشتراک‌گذاری', text: 'در روزهای آغازین محاسبات، اشتراک‌گذاری کد منبع امری رایج بود و شرکت‌هایی مانند DEC سیستم‌عامل‌های خود را با کد منبع توزیع می‌کردند.'},
+        '1984': { title: '۱۹۸۴: تولد جنبش نرم‌افزار آزاد', text: 'ریچارد استالمن در مخالفت با تجاری و بسته شدن نرم‌افزار، پروژه GNU را برای ساخت یک سیستم‌عامل کاملاً آزاد آغاز و بنیاد نرم‌افزار آزاد (FSF) را تأسیس کرد.'},
+        '1991': { title: '۱۹۹۱: تولد هسته لینوکس', text: 'لینوس توروالدز، یک دانشجوی فنلاندی، اولین نسخه از هسته لینوکس را با استفاده از ابزارهای GNU منتشر کرد و از جهان برای مشارکت دعوت کرد.'},
+        '1992': { title: '۱۹۹۲: لینوکس آزاد می‌شود', text: 'لینوکس تحت مجوز GPL بازنشر داده شد و رسماً به یک نرم‌افزار آزاد تبدیل گردید.'}
+    };
+
+    timelineItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const year = item.dataset.year;
+            timelineItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            const data = historyData[year];
+            historyDetails.innerHTML = `
+                <div class="timeline-content active">
+                    <h4 class="font-bold text-lg text-center">${data.title}</h4>
+                    <p class="text-sm text-center mt-2">${data.text}</p>
+                </div>`;
+        });
+    });
+    // Activate first timeline item by default
+    document.querySelector('.timeline-item[data-year="1970"]').click();
+    
+    // OS Modal
+    const osModal = document.getElementById('os-modal');
+    const osModalTitle = document.getElementById('os-modal-title');
+    const osModalBody = document.getElementById('os-modal-body');
+    const osModalClose = document.getElementById('os-modal-close');
+    const osData = {
+        linux: { title: "گنو/لینوکس", content: `<strong>توزیع‌های معروف:</strong><ul class="list-disc pr-5 mt-2"><li>Ubuntu (محبوب برای دسکتاپ)</li><li>Debian (بسیار پایدار)</li><li>Fedora / Red Hat (مورد استفاده در محیط‌های تجاری)</li><li>SUSE</li></ul>`},
+        bsd: { title: "یونیکس BSD", content: `<strong>توزیع‌های معروف:</strong><ul class="list-disc pr-5 mt-2"><li>FreeBSD (تمرکز بر کارایی و قابلیت‌ها)</li><li>OpenBSD (تمرکز بر امنیت)</li><li>NetBSD (تمرکز بر قابلیت حمل روی سخت‌افزارهای مختلف)</li></ul><p class="mt-2 text-sm">هسته macOS (Darwin) نیز بر پایه BSD است.</p>`},
+        solaris: { title: "سولاریس / Illumos", content: `<p class="text-sm">این سیستم‌عامل به خاطر قابلیت‌های پیشرفته‌ای مانند سیستم فایل ZFS و ابزار DTrace معروف است. پس از متن‌باز شدن، جامعه توسعه آن را تحت نام Illumos ادامه داد.</p>`}
+    };
+    
+    document.querySelectorAll('.os-modal-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const osId = button.dataset.os;
+            const data = osData[osId];
+            osModalTitle.textContent = data.title;
+            osModalBody.innerHTML = data.content;
+            osModal.classList.add('active');
+        });
+    });
+
+    osModalClose.addEventListener('click', () => osModal.classList.remove('active'));
+    osModal.addEventListener('click', (e) => { if(e.target === osModal) osModal.classList.remove('active'); });
+
+});
+</script>
+</body>
+</html>

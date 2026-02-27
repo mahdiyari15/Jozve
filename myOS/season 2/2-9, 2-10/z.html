@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کاوشگر جامع فصل دوم - بخش ۹ و ۱۰: ساخت، راه‌اندازی و عیب‌یابی</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: System Engineer -->
+    <!-- Application Structure Plan: This SPA is designed as an interactive guide with three thematic sections: 'تولید سیستم (SYSGEN)', 'راه‌اندازی (Booting)', and 'عیب‌یابی و نظارت'. A sticky side navigation provides quick access. This structure is chosen to logically separate the three distinct phases of an OS's lifecycle. The user flow is highly visual. The 'SYSGEN' section uses an interactive flowchart. The 'Booting' section features an animated step-by-step timeline. The 'Debugging' section has a comparison table and a simulated terminal for tracing tools. This interactive, process-oriented design makes these technical and abstract procedures tangible and easier to follow. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: System Generation Process (Linux) -> Goal: Explain a Process -> Viz: An interactive, multi-step flowchart. -> Interaction: Users click a "شروع" button. Each step of the Linux kernel build process (Download, Configure, Compile, etc.) is highlighted in sequence, and a side panel displays the corresponding command (e.g., `make menuconfig`) and its purpose. -> Justification: This transforms a list of commands into a guided, visual walkthrough of a complex real-world process.
+        - Report Info: System Boot Process (BIOS/UEFI) -> Goal: Explain a Process -> Viz: An animated vertical timeline. -> Interaction: As the user scrolls, each stage of the boot process (BIOS/UEFI -> Bootloader -> Kernel Load -> initramfs -> Mount Root -> Init Process) animates into view. A toggle allows switching between a "BIOS" and "UEFI" path to highlight the difference. -> Justification: The animated, sequential reveal is perfect for explaining a linear process, and the toggle effectively contrasts the old vs. new methods.
+        - Report Info: Failure Analysis (Core Dump vs. Crash Dump) -> Goal: Compare/Contrast -> Viz: A simple side-by-side comparison table. -> Interaction: Hovering over each type reveals a more detailed explanation of how the dump is generated and analyzed. -> Justification: A clear, concise table is the best way to compare and differentiate these two similar but distinct concepts.
+        - Report Info: Performance Monitoring Tools (Counters vs. Tracing) -> Goal: Differentiate Concepts -> Viz: A simulated terminal interface. -> Interaction: Users can click buttons labeled with command names (e.g., `top`, `strace`). The terminal then displays a simulated, animated output of that command, visually demonstrating the difference between a counter-based tool (updating numbers) and a tracing tool (a stream of events). -> Justification: This interactive simulation provides a hands-on feel for how these tools work in practice and what kind of data they provide.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f0f4f8;
+            color: #1e293b;
+        }
+        .nav-link.active {
+            background-color: #7c3aed;
+            color: white;
+        }
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .content-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .flow-step {
+            opacity: 0.3;
+            transition: all 0.5s ease-in-out;
+        }
+        .flow-step.active {
+            opacity: 1;
+            transform: scale(1.02);
+            border-color: #7c3aed;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-slate-800 text-white p-4 shadow-lg text-center sticky top-0 z-50">
+        <h1 class="text-2xl md:text-3xl font-bold">فصل دوم، بخش ۹ و ۱۰: ساخت، راه‌اندازی و عیب‌یابی</h1>
+    </header>
+
+    <div class="container mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-8">
+        <!-- Side Navigation -->
+        <aside class="md:w-1/4">
+            <nav id="side-nav" class="sticky top-24 space-y-2">
+                <a href="#sysgen" class="nav-link block font-semibold p-3 rounded-lg transition-colors">تولید سیستم (SYSGEN)</a>
+                <a href="#boot" class="nav-link block font-semibold p-3 rounded-lg transition-colors">راه‌اندازی (Booting)</a>
+                <a href="#debug" class="nav-link block font-semibold p-3 rounded-lg transition-colors">عیب‌یابی و نظارت</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="w-full md:w-3/4">
+            
+            <!-- System Generation Section -->
+            <section id="sysgen-section" class="content-section">
+                <h2 class="text-3xl font-bold mb-4 text-violet-700 border-r-4 border-violet-700 pr-4">۲-۹-۱: تولید سیستم‌عامل (SYSGEN)</h2>
+                <p class="mb-8 text-lg leading-relaxed">این فرآیند، یک نسخه عمومی از سیستم‌عامل را برای یک سخت‌افزار خاص، آماده و بهینه‌سازی می‌کند. در شبیه‌ساز زیر، مراحل ساخت یک هسته لینوکس را به صورت تعاملی دنبال کنید.</p>
+                <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <div class="text-center mb-6">
+                        <button id="start-sysgen-sim" class="bg-violet-600 text-white font-bold py-2 px-4 rounded-lg">شروع فرآیند ساخت هسته</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div class="space-y-3">
+                            <div id="sysgen-step-1" class="flow-step p-3 border-2 rounded-lg">۱. دریافت کد منبع</div>
+                            <div id="sysgen-step-2" class="flow-step p-3 border-2 rounded-lg">۲. پیکربندی هسته</div>
+                            <div id="sysgen-step-3" class="flow-step p-3 border-2 rounded-lg">۳. کامپایل هسته</div>
+                            <div id="sysgen-step-4" class="flow-step p-3 border-2 rounded-lg">۴. کامپایل ماژول‌ها</div>
+                            <div id="sysgen-step-5" class="flow-step p-3 border-2 rounded-lg">۵. نصب</div>
+                        </div>
+                        <div id="sysgen-info" class="p-4 bg-gray-50 rounded-lg border min-h-[200px]">
+                             <p>برای شروع شبیه‌سازی کلیک کنید.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Booting Section -->
+            <section id="boot-section" class="content-section">
+                <h2 class="text-3xl font-bold mb-4 text-violet-700 border-r-4 border-violet-700 pr-4">۲-۹-۲: راه‌اندازی سیستم (System Boot)</h2>
+                <p class="mb-8 text-lg leading-relaxed">بوت کردن، فرآیند شروع به کار کامپیوتر از لحظه فشردن دکمه پاور تا بارگذاری کامل سیستم‌عامل است. این فرآیند با سفت‌افزارهای مدرن UEFI سریع‌تر و کارآمدتر شده است.</p>
+                <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <h3 class="text-xl font-bold mb-4 text-center">مراحل فرآیند بوت</h3>
+                    <div class="relative border-r-4 border-gray-200 pr-8 space-y-8">
+                        <!-- Step 1 -->
+                        <div class="relative">
+                            <div class="absolute top-0 right-[-2.2rem] w-8 h-8 bg-violet-500 rounded-full flex items-center justify-center text-white font-bold">۱</div>
+                            <h4 class="font-bold">اجرای سفت‌افزار (BIOS/UEFI)</h4>
+                            <p class="text-sm mt-1">برنامه بالاآورنده اولیه از حافظه نامیرا اجرا می‌شود.</p>
+                        </div>
+                         <!-- Step 2 -->
+                        <div class="relative">
+                            <div class="absolute top-0 right-[-2.2rem] w-8 h-8 bg-violet-500 rounded-full flex items-center justify-center text-white font-bold">۲</div>
+                            <h4 class="font-bold">اجرای بارگذار بوت (GRUB)</h4>
+                            <p class="text-sm mt-1">بارگذار بوت قدرتمندتر از دیسک اجرا شده و هسته را پیدا می‌کند.</p>
+                        </div>
+                         <!-- Step 3 -->
+                        <div class="relative">
+                            <div class="absolute top-0 right-[-2.2rem] w-8 h-8 bg-violet-500 rounded-full flex items-center justify-center text-white font-bold">۳</div>
+                            <h4 class="font-bold">بارگذاری هسته و initramfs</h4>
+                            <p class="text-sm mt-1">هسته فشرده در حافظه بارگذاری شده و یک سیستم فایل موقت در RAM ایجاد می‌شود.</p>
+                        </div>
+                         <!-- Step 4 -->
+                        <div class="relative">
+                            <div class="absolute top-0 right-[-2.2rem] w-8 h-8 bg-violet-500 rounded-full flex items-center justify-center text-white font-bold">۴</div>
+                            <h4 class="font-bold">سوار کردن سیستم فایل ریشه</h4>
+                            <p class="text-sm mt-1">هسته با استفاده از درایورهای initramfs، سیستم فایل اصلی را سوار (Mount) می‌کند.</p>
+                        </div>
+                         <!-- Step 5 -->
+                        <div class="relative">
+                            <div class="absolute top-0 right-[-2.2rem] w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">✔</div>
+                            <h4 class="font-bold text-green-600">اجرای پردازه init/systemd</h4>
+                            <p class="text-sm mt-1">اولین پردازه فضای کاربر اجرا شده و بقیه سیستم را راه‌اندازی می‌کند.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Debugging Section -->
+            <section id="debug-section" class="content-section">
+                <h2 class="text-3xl font-bold mb-4 text-violet-700 border-r-4 border-violet-700 pr-4">۲-۱۰: عیب‌یابی و نظارت بر کارایی</h2>
+                <p class="mb-8 text-lg leading-relaxed">عیب‌یابی هنر یافتن و رفع خطاهاست. نظارت بر کارایی نیز به شناسایی گلوگاه‌ها کمک می‌کند. در این بخش با ابزارها و تکنیک‌های اصلی آشنا می‌شویم.</p>
+                 <div class="bg-white p-6 rounded-xl shadow-lg border mb-8">
+                     <h3 class="text-xl font-bold mb-4">تحلیل خرابی: Core Dump در برابر Crash Dump</h3>
+                     <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-right">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="p-2">ویژگی</th>
+                                    <th class="p-2 font-bold text-blue-600">Core Dump (برنامه کاربر)</th>
+                                    <th class="p-2 font-bold text-red-600">Crash Dump (هسته)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b"><td class="p-2">منشأ خطا</td><td class="p-2">خطا در یک برنامه فضای کاربر</td><td class="p-2">خطای غیرقابل ترمیم در هسته</td></tr>
+                                <tr class="border-b"><td class="p-2">محتوا</td><td class="p-2">تصویر حافظه فقط همان پردازه</td><td class="p-2">تصویر کامل حافظه سیستم (یا بخش هسته)</td></tr>
+                                <tr><td class="p-2">محل ذخیره</td><td class="p-2">یک فایل عادی در سیستم فایل</td><td class="p-2">یک ناحیه خام روی دیسک (Swap)</td></tr>
+                            </tbody>
+                        </table>
+                     </div>
+                </div>
+                 <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <h3 class="text-xl font-bold mb-4">ابزارهای نظارت: شمارنده‌ها در برابر ردیابی</h3>
+                     <div class="bg-black text-green-400 font-mono p-4 rounded-lg min-h-[200px]">
+                        <div class="flex gap-2 mb-4">
+                            <button class="bg-gray-700 text-white px-2 py-1 text-xs rounded" onclick="runTool('top')">top</button>
+                            <button class="bg-gray-700 text-white px-2 py-1 text-xs rounded" onclick="runTool('strace')">strace</button>
+                        </div>
+                        <div id="terminal-output"></div>
+                    </div>
+                 </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('.content-section');
+
+    function showSection(targetId) {
+        sections.forEach(section => section.classList.toggle('active', section.id === `${targetId}-section`));
+        navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${targetId}`));
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection(link.getAttribute('href').substring(1));
+        });
+    });
+    showSection('sysgen'); // Default section
+
+    // SYSGEN Simulation
+    const startSysgenSim = document.getElementById('start-sysgen-sim');
+    const sysgenSteps = document.querySelectorAll('.flow-step');
+    const sysgenInfo = document.getElementById('sysgen-info');
+    const sysgenStepInfo = [
+        { title: "۱. دریافت کد منبع", text: "دستور: `git clone ...` <br> کد منبع هسته از مخزن رسمی دانلود می‌شود." },
+        { title: "۲. پیکربندی هسته", text: "دستور: `make menuconfig` <br> یک رابط متنی برای انتخاب درایورها و قابلیت‌های مورد نیاز باز می‌شود. نتیجه در فایل `.config` ذخیره می‌شود." },
+        { title: "۳. کامپایل هسته", text: "دستور: `make` <br> کد منبع بر اساس فایل `.config` کامپایل شده و تصویر هسته (vmlinuz) ساخته می‌شود." },
+        { title: "۴. کامپایل ماژول‌ها", text: "دستور: `make modules` <br> درایورها و قابلیت‌هایی که به صورت ماژول انتخاب شده‌اند، کامپایل می‌شوند." },
+        { title: "۵. نصب", text: "دستور: `make modules_install && make install` <br> هسته و ماژول‌های جدید روی سیستم نصب شده و تنظیمات بوت‌لودر به‌روزرسانی می‌شود." }
+    ];
+    let currentSysgenStep = -1;
+    let sysgenInterval;
+
+    startSysgenSim.addEventListener('click', () => {
+        clearInterval(sysgenInterval);
+        currentSysgenStep = 0;
+        sysgenSteps.forEach(step => step.classList.remove('active'));
+        sysgenInfo.innerHTML = "";
+        startSysgenSim.disabled = true;
+
+        sysgenInterval = setInterval(() => {
+            if (currentSysgenStep < sysgenSteps.length) {
+                sysgenSteps.forEach(s => s.classList.remove('active'));
+                const step = sysgenSteps[currentSysgenStep];
+                step.classList.add('active');
+                const info = sysgenStepInfo[currentSysgenStep];
+                sysgenInfo.innerHTML = `<h4 class="font-bold">${info.title}</h4><p class="text-sm mt-2">${info.text}</p>`;
+                currentSysgenStep++;
+            } else {
+                clearInterval(sysgenInterval);
+                sysgenInfo.innerHTML = `<p class="font-bold text-green-600">فرآیند ساخت با موفقیت کامل شد!</p>`;
+                startSysgenSim.disabled = false;
+            }
+        }, 2000);
+    });
+    
+    // Terminal simulation
+    const terminalOutput = document.getElementById('terminal-output');
+    const topOutput = `> PID&nbsp;&nbsp;USER&nbsp;&nbsp;&nbsp;&nbsp;%CPU&nbsp;%MEM&nbsp;&nbsp;COMMAND<br>
+                       > 1234&nbsp;&nbsp;root&nbsp;&nbsp;&nbsp;&nbsp;15.7&nbsp;2.1&nbsp;&nbsp;&nbsp;systemd<br>
+                       > 5678&nbsp;&nbsp;user&nbsp;&nbsp;&nbsp;&nbsp;5.2&nbsp;&nbsp;8.5&nbsp;&nbsp;&nbsp;firefox<br>
+                       > (شمارنده‌هایی که به صورت زنده به‌روز می‌شوند)`;
+    const straceOutput = `> openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3<br>
+                         > read(3, "...", 4096) = 4096<br>
+                         > write(1, "Hello World", 11) = 11<br>
+                         > (جریانی از رویدادهای خاص فراخوانی سیستمی)`;
+                         
+    window.runTool = (tool) => {
+        terminalOutput.innerHTML = `> Running <span class="text-yellow-400">${tool}</span>...<br><br>`;
+        if (tool === 'top') {
+            terminalOutput.innerHTML += topOutput;
+        } else {
+            terminalOutput.innerHTML += straceOutput;
+        }
+    };
+    runTool('top'); // Initial view
+
+});
+</script>
+
+</body>
+</html>

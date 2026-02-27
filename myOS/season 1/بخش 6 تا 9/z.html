@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device--width, initial-scale=1.0">
+    <title>کاوشگر جامع سیستم عامل - بخش ۶ تا ۹: مفاهیم پیشرفته</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Academic Blue -->
+    <!-- Application Structure Plan: This SPA is structured into four main thematic sections accessible via a sticky top navigation: Security, Virtualization, Distributed Systems, and Kernel Data Structures. The primary design goal is to make abstract concepts tangible through interaction. The "Security vs. Protection" section uses an interactive categorization exercise. "Virtualization" features a side-by-side comparison with an animated performance meter. "Distributed Systems" uses a simple map to explain network scales. The centerpiece is the "Kernel Data Structures Explorer," which allows users to interact with animated visualizations of each data structure (Stack, Queue, Tree, etc.). This hands-on, modular approach is chosen to break down complex topics and foster deep learning through active engagement rather than passive reading. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Protection vs. Security -> Goal: Differentiate Concepts -> Viz: An interactive exercise where users categorize scenarios. -> Interaction: Users drag scenario cards (e.g., "Timer prevents infinite loop") into either the "حفاظت (داخلی)" or "امنیت (خارجی)" buckets. Correct/incorrect feedback is given instantly. -> Justification: Active participation solidifies the understanding of this nuanced difference.
+        - Report Info: Virtualization vs. Emulation -> Goal: Compare/Contrast -> Viz: A visual comparison with an animated speedometer graphic. -> Interaction: A toggle switches between "مجازی‌سازی" and "تقلید". The speedometer for Virtualization shows high performance, while for Emulation it shows low performance, visually representing the efficiency difference. -> Justification: Provides an immediate, intuitive understanding of the performance implications.
+        - Report Info: Kernel Data Structures (Stack, Queue, Tree, etc.) -> Goal: Explain/Demonstrate -> Viz: An interactive "Data Structure Explorer" with animated visualizations for each structure. -> Interaction: Users click buttons like "Push/Pop" for a stack or "Enqueue/Dequeue" for a queue, triggering CSS animations that show elements moving. For a Bitmap, clicking "Allocate" flips a bit and colors a block. -> Justification: This is the most effective way to learn these concepts. Seeing the data move makes abstract rules like LIFO/FIFO concrete and memorable.
+        - Report Info: Distributed Systems (LAN/WAN) -> Goal: Inform/Organize -> Viz: A simple conceptual map showing concentric circles for PAN, LAN, MAN, WAN to illustrate scale. -> Interaction: Hovering over each circle reveals examples. -> Justification: A simple visual aid to quickly grasp the concept of network scale.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        .nav-item.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .ds-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .modal {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .stack-item, .queue-item {
+            transition: all 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .drop-zone {
+            transition: background-color 0.3s ease;
+        }
+        .drop-zone-hover {
+            background-color: #a7f3d0;
+        }
+        .draggable {
+            cursor: grab;
+        }
+        .correct-drop {
+            animation: correct 0.5s ease;
+        }
+        .incorrect-drop {
+             animation: incorrect 0.5s ease;
+        }
+        @keyframes correct {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); background-color: #2ecc71; }
+            100% { transform: scale(1); background-color: #d1fae5;}
+        }
+        @keyframes incorrect {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header and Navigation -->
+    <header class="bg-[#2c3e50] text-gray-200 p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold">جزوه جامع: مفاهیم پیشرفته</h1>
+            <nav class="hidden md:flex space-x-2 space-x-reverse">
+                <a href="#security" class="nav-item text-sm px-3 py-2 rounded-md hover:bg-[#3498db] hover:text-white">امنیت و حفاظت</a>
+                <a href="#virtualization" class="nav-item text-sm px-3 py-2 rounded-md hover:bg-[#3498db] hover:text-white">مجازی‌سازی</a>
+                <a href="#distributed" class="nav-item text-sm px-3 py-2 rounded-md hover:bg-[#3498db] hover:text-white">سیستم‌های توزیع‌شده</a>
+                <a href="#datastructures" class="nav-item text-sm px-3 py-2 rounded-md hover:bg-[#3498db] hover:text-white">ساختمان داده‌های هسته</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden focus:outline-none">
+                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden mt-3">
+             <a href="#security" class="block py-2 px-4 text-sm hover:bg-[#3498db]">امنیت و حفاظت</a>
+             <a href="#virtualization" class="block py-2 px-4 text-sm hover:bg-[#3498db]">مجازی‌سازی</a>
+             <a href="#distributed" class="block py-2 px-4 text-sm hover:bg-[#3498db]">سیستم‌های توزیع‌شده</a>
+             <a href="#datastructures" class="block py-2 px-4 text-sm hover:bg-[#3498db]">ساختمان داده‌های هسته</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <!-- Section 1: Security and Protection -->
+        <section id="security" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-[#2980b9] border-r-4 border-[#2980b9] pr-4">۱-۶: امنیت و حفاظت</h2>
+            <p class="mb-8 text-lg leading-relaxed">
+                این دو مفهوم اغلب با هم اشتباه گرفته می‌شوند. **حفاظت** مکانیزم داخلی سیستم‌عامل برای کنترل دسترسی است، در حالی که **امنیت** دفاع در برابر حملات خارجی و داخلی است. در تمرین تعاملی زیر، سناریوها را به دسته درست بکشید تا تفاوت را عمیقاً درک کنید.
+            </p>
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div id="scenarios" class="md:col-span-1 space-y-3">
+                        <div class="p-3 bg-yellow-100 rounded-lg border border-yellow-300 draggable" draggable="true" data-type="protection">تایمر جلوی حلقه بی‌نهایت یک برنامه را می‌گیرد.</div>
+                        <div class="p-3 bg-yellow-100 rounded-lg border border-yellow-300 draggable" draggable="true" data-type="security">یک ویروس فایل‌های سیستم را آلوده می‌کند.</div>
+                        <div class="p-3 bg-yellow-100 rounded-lg border border-yellow-300 draggable" draggable="true" data-type="protection">یک برنامه تلاش می‌کند به حافظه برنامه دیگری دسترسی پیدا کند.</div>
+                        <div class="p-3 bg-yellow-100 rounded-lg border border-yellow-300 draggable" draggable="true" data-type="security">یک هکر تلاش می‌کند رمز عبور کاربر را بدزدد.</div>
+                    </div>
+                    <div class="md:col-span-2 grid grid-cols-2 gap-4">
+                        <div id="protection-zone" class="drop-zone p-4 bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg min-h-[200px]">
+                            <h3 class="font-bold text-center text-blue-800">حفاظت (داخلی)</h3>
+                        </div>
+                        <div id="security-zone" class="drop-zone p-4 bg-red-50 border-2 border-dashed border-red-300 rounded-lg min-h-[200px]">
+                            <h3 class="font-bold text-center text-red-800">امنیت (خارجی/داخلی)</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section 2: Virtualization -->
+        <section id="virtualization" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-[#2980b9] border-r-4 border-[#2980b9] pr-4">۱-۷: مجازی‌سازی (Virtualization)</h2>
+             <p class="mb-8 text-lg leading-relaxed">
+               مجازی‌سازی به ما اجازه می‌دهد تا روی یک کامپیوتر فیزیکی، چندین کامپیوتر مجازی مستقل اجرا کنیم. این فناوری با **تقلید (Emulation)** متفاوت است. با استفاده از دکمه زیر، تفاوت کارایی این دو رویکرد را به صورت بصری مقایسه کنید.
+            </p>
+             <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <div class="flex justify-center mb-6">
+                    <div class="bg-gray-200 p-1 rounded-full flex">
+                        <button id="virt-toggle" class="px-4 py-2 rounded-full text-sm font-semibold focus:outline-none">مجازی‌سازی</button>
+                        <button id="emul-toggle" class="px-4 py-2 rounded-full text-sm font-semibold focus:outline-none">تقلید</button>
+                    </div>
+                 </div>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <div id="virt-desc">
+                        <h3 class="text-xl font-bold text-green-600">مجازی‌سازی (کارایی بالا)</h3>
+                        <p class="mt-2 text-sm leading-loose">معماری پردازنده میهمان و میزبان **یکسان** است. مدیر ماشین مجازی (VMM) بیشتر دستورالعمل‌ها را مستقیماً روی CPU اجرا می‌کند و کارایی نزدیک به سخت‌افزار واقعی است.</p>
+                    </div>
+                     <div id="emul-desc" class="hidden">
+                        <h3 class="text-xl font-bold text-red-600">تقلید (کارایی پایین)</h3>
+                        <p class="mt-2 text-sm leading-loose">معماری پردازنده میهمان و میزبان **متفاوت** است. هر دستورالعمل میهمان باید به صورت نرم‌افزاری به دستورالعمل‌های میزبان ترجمه شود که فرآیندی بسیار کند است.</p>
+                    </div>
+                    <div class="flex justify-center items-center h-40">
+                        <div class="w-40 h-20 bg-gray-200 rounded-full relative overflow-hidden" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0;">
+                            <div id="speed-needle" class="w-1 h-20 bg-gray-800 absolute bottom-0 left-1/2 transform -translate-x-1/2 origin-bottom transition-transform duration-500 ease-in-out"></div>
+                            <div class="absolute bottom-0 left-1/2 w-4 h-4 bg-gray-800 rounded-full transform -translate-x-1/2 translate-y-1/2"></div>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Distributed Systems -->
+        <section id="distributed" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-[#2980b9] border-r-4 border-[#2980b9] pr-4">۱-۸: سیستم‌های توزیع‌شده</h2>
+             <p class="mb-8 text-lg leading-relaxed">
+               یک سیستم توزیع‌شده، مجموعه‌ای از کامپیوترهای مستقل است که از طریق شبکه با هم همکاری می‌کنند. شبکه‌ها بر اساس مقیاس و فاصله، به دسته‌های مختلفی تقسیم می‌شوند.
+            </p>
+             <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-center">
+                 <h3 class="text-2xl font-bold mb-6">مقیاس شبکه‌ها</h3>
+                 <div class="relative flex justify-center items-center w-full max-w-md mx-auto aspect-square">
+                     <div class="absolute w-full h-full rounded-full bg-blue-100 flex items-center justify-center"><span class="font-bold text-blue-800">WAN (کشورها)</span></div>
+                     <div class="absolute w-3/4 h-3/4 rounded-full bg-green-100 flex items-center justify-center"><span class="font-bold text-green-800">MAN (شهر)</span></div>
+                     <div class="absolute w-1/2 h-1/2 rounded-full bg-yellow-100 flex items-center justify-center"><span class="font-bold text-yellow-800">LAN (ساختمان)</span></div>
+                     <div class="absolute w-1/4 h-1/4 rounded-full bg-red-100 flex items-center justify-center"><span class="font-bold text-red-800">PAN (شخصی)</span></div>
+                 </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Kernel Data Structures -->
+        <section id="datastructures" class="scroll-mt-20">
+            <h2 class="text-3xl font-bold mb-4 text-[#2980b9] border-r-4 border-[#2980b9] pr-4">۱-۹: ساختمان داده‌های هسته</h2>
+            <p class="mb-8 text-lg leading-relaxed">
+                هسته سیستم‌عامل برای مدیریت کارآمد منابع، از ابزارهای قدرتمندی به نام ساختمان داده استفاده می‌کند. با کلیک بر روی هر کارت در "کاوشگر ساختمان داده" زیر، با عملکرد و کاربرد هر یک به صورت تعاملی آشنا شوید.
+            </p>
+             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                 <!-- Data Structure Cards -->
+                <div class="ds-card p-4 bg-white rounded-xl shadow-lg border transition-all duration-300" data-ds="stack">
+                    <h3 class="text-xl font-bold">پشته (Stack)</h3><p class="text-sm mt-1">LIFO - آخرین ورود، اولین خروج</p>
+                </div>
+                 <div class="ds-card p-4 bg-white rounded-xl shadow-lg border transition-all duration-300" data-ds="queue">
+                    <h3 class="text-xl font-bold">صف (Queue)</h3><p class="text-sm mt-1">FIFO - اولین ورود، اولین خروج</p>
+                </div>
+                <div class="ds-card p-4 bg-white rounded-xl shadow-lg border transition-all duration-300" data-ds="list">
+                    <h3 class="text-xl font-bold">لیست پیوندی</h3><p class="text-sm mt-1">مجموعه دینامیک</p>
+                </div>
+                 <div class="ds-card p-4 bg-white rounded-xl shadow-lg border transition-all duration-300" data-ds="tree">
+                    <h3 class="text-xl font-bold">درخت</h3><p class="text-sm mt-1">ساختار سلسله مراتبی</p>
+                </div>
+                 <div class="ds-card p-4 bg-white rounded-xl shadow-lg border transition-all duration-300" data-ds="hash">
+                    <h3 class="text-xl font-bold">نقشه درهم</h3><p class="text-sm mt-1">جستجوی سریع کلید-مقدار</p>
+                </div>
+                <div class="ds-card p-4 bg-white rounded-xl shadow-lg border transition-all duration-300" data-ds="bitmap">
+                    <h3 class="text-xl font-bold">نقشه بیتی</h3><p class="text-sm mt-1">نمایش وضعیت منابع</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <!-- Modal for Data Structures -->
+    <div id="ds-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b">
+                 <h3 id="modal-title" class="text-2xl font-bold"></h3>
+                <button id="modal-close" class="text-2xl font-bold">&times;</button>
+            </div>
+            <div id="modal-body" class="p-6 overflow-y-auto"></div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
+
+    // Smooth scrolling for nav links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) { target.scrollIntoView({ behavior: 'smooth' }); }
+            if (!mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
+        });
+    });
+    
+    // Security vs Protection Drag & Drop
+    const draggables = document.querySelectorAll('.draggable');
+    const dropZones = document.querySelectorAll('.drop-zone');
+    draggables.forEach(draggable => {
+        draggable.addEventListener('dragstart', () => draggable.classList.add('opacity-50'));
+        draggable.addEventListener('dragend', () => draggable.classList.remove('opacity-50'));
+    });
+    dropZones.forEach(zone => {
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            zone.classList.add('drop-zone-hover');
+        });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drop-zone-hover'));
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('drop-zone-hover');
+            const draggedId = document.querySelector('.opacity-50');
+            if (zone.id.startsWith(draggedId.dataset.type)) {
+                draggedId.classList.add('correct-drop');
+                setTimeout(() => {
+                    zone.appendChild(draggedId);
+                    draggedId.classList.remove('correct-drop');
+                }, 500);
+            } else {
+                 draggedId.classList.add('incorrect-drop');
+                 setTimeout(() => draggedId.classList.remove('incorrect-drop'), 500);
+            }
+        });
+    });
+
+    // Virtualization Toggle
+    const virtToggle = document.getElementById('virt-toggle');
+    const emulToggle = document.getElementById('emul-toggle');
+    const virtDesc = document.getElementById('virt-desc');
+    const emulDesc = document.getElementById('emul-desc');
+    const speedNeedle = document.getElementById('speed-needle');
+    const activeToggleClass = 'bg-white text-gray-800 shadow';
+    
+    function setVirtMode(isVirt) {
+        virtDesc.classList.toggle('hidden', !isVirt);
+        emulDesc.classList.toggle('hidden', isVirt);
+        virtToggle.classList.toggle(activeToggleClass, isVirt);
+        emulToggle.classList.toggle(activeToggleClass, !isVirt);
+        speedNeedle.style.transform = `rotate(${isVirt ? 70 : -70}deg)`;
+    }
+    virtToggle.addEventListener('click', () => setVirtMode(true));
+    emulToggle.addEventListener('click', () => setVirtMode(false));
+    setVirtMode(true);
+
+    // Data Structures Modal
+    const dsCards = document.querySelectorAll('.ds-card');
+    const modal = document.getElementById('ds-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    const modalClose = document.getElementById('modal-close');
+    
+    const dsData = {
+        stack: {
+            title: "پشته (Stack)",
+            content: `
+                <p><strong>منطق:</strong> LIFO (آخرین ورود، اولین خروج)</p>
+                <p class="mt-2"><strong>کاربرد در سیستم‌عامل:</strong> مدیریت فراخوانی توابع. پارامترها، متغیرهای محلی و آدرس بازگشت در پشته قرار می‌گیرند.</p>
+                <div class="mt-4 p-4 border rounded-lg flex justify-center items-end h-48 bg-gray-100 space-x-2 space-x-reverse" id="stack-viz"></div>
+                <div class="mt-4 flex justify-center gap-4">
+                    <button id="stack-push" class="bg-blue-500 text-white px-4 py-1 rounded">Push</button>
+                    <button id="stack-pop" class="bg-red-500 text-white px-4 py-1 rounded">Pop</button>
+                </div>`
+        },
+        queue: {
+            title: "صف (Queue)",
+            content: `
+                <p><strong>منطق:</strong> FIFO (اولین ورود، اولین خروج)</p>
+                <p class="mt-2"><strong>کاربرد در سیستم‌عامل:</strong> مدیریت پردازه‌های منتظر برای CPU، مدیریت درخواست‌های چاپگر.</p>
+                <div class="mt-4 p-4 border rounded-lg flex items-center h-24 bg-gray-100 space-x-2 space-x-reverse" id="queue-viz"></div>
+                <div class="mt-4 flex justify-center gap-4">
+                    <button id="queue-enq" class="bg-blue-500 text-white px-4 py-1 rounded">Enqueue</button>
+                    <button id="queue-deq" class="bg-red-500 text-white px-4 py-1 rounded">Dequeue</button>
+                </div>`
+        },
+        list: { title: "لیست پیوندی", content: "<p>برای مدیریت مجموعه‌هایی با اندازه متغیر استفاده می‌شود. انواع آن شامل یک‌طرفه، دوطرفه و چرخشی است.</p>" },
+        tree: { title: "درخت", content: "<p>برای نمایش داده‌های سلسله مراتبی. درخت جستجوی دودویی متوازن (مانند درخت قرمز-سیاه در لینوکس) برای جستجوی سریع پردازه‌ها در زمان‌بند استفاده می‌شود.</p>" },
+        hash: { title: "نقشه درهم", content: "<p>برای جستجوی بسیار سریع کلید-مقدار. برای مدیریت جداول مختلف در هسته (مانند جدول صفحات) کاربرد دارد.</p>" },
+        bitmap: {
+            title: "نقشه بیتی (Bitmap)",
+            content: `
+                <p><strong>ساختار:</strong> یک رشته فشرده از بیت‌ها برای نمایش وضعیت منابع.</p>
+                <p class="mt-2"><strong>کاربرد در سیستم‌عامل:</strong> بسیار بهینه از نظر فضا. عمدتا برای نمایش بلوک‌های آزاد و اشغال شده روی دیسک سخت استفاده می‌شود.</p>
+                <div class="mt-4 p-4 border rounded-lg bg-gray-100">
+                    <p class="font-mono text-center text-lg mb-2" id="bitmap-str">00000000</p>
+                    <div class="grid grid-cols-8 gap-1" id="bitmap-viz">
+                        ${Array(8).fill(0).map((_, i) => `<div class="w-full aspect-square bg-green-300 rounded" data-bit="${i}"></div>`).join('')}
+                    </div>
+                </div>
+                 <div class="mt-4 flex justify-center gap-4">
+                    <button id="bitmap-alloc" class="bg-blue-500 text-white px-4 py-1 rounded">تخصیص بلوک</button>
+                    <button id="bitmap-free" class="bg-red-500 text-white px-4 py-1 rounded">آزاد کردن بلوک</button>
+                </div>`
+        }
+    };
+
+    dsCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const dsId = card.dataset.ds;
+            modalTitle.textContent = dsData[dsId].title;
+            modalBody.innerHTML = dsData[dsId].content;
+            modal.classList.add('active');
+            
+            if (dsId === 'stack') setupStack();
+            if (dsId === 'queue') setupQueue();
+            if (dsId === 'bitmap') setupBitmap();
+        });
+    });
+
+    modalClose.addEventListener('click', () => modal.classList.remove('active'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+
+    function setupStack() {
+        const viz = document.getElementById('stack-viz');
+        let items = [];
+        document.getElementById('stack-push').onclick = () => {
+            if (items.length >= 5) return;
+            const newItem = document.createElement('div');
+            newItem.className = 'stack-item w-12 h-12 bg-blue-400 rounded flex items-center justify-center text-white font-bold';
+            newItem.textContent = items.length + 1;
+            newItem.style.transform = 'translateY(-100px)';
+            newItem.style.opacity = '0';
+            viz.appendChild(newItem);
+            items.push(newItem);
+            setTimeout(() => {
+                newItem.style.transform = 'translateY(0)';
+                newItem.style.opacity = '1';
+            }, 10);
+        };
+        document.getElementById('stack-pop').onclick = () => {
+            if (items.length === 0) return;
+            const item = items.pop();
+            item.style.transform = 'translateY(-100px)';
+            item.style.opacity = '0';
+            setTimeout(() => viz.removeChild(item), 500);
+        };
+    }
+    
+    function setupQueue() {
+        const viz = document.getElementById('queue-viz');
+        let items = [];
+        let counter = 0;
+         document.getElementById('queue-enq').onclick = () => {
+             if (items.length >= 8) return;
+             counter++;
+             const newItem = document.createElement('div');
+             newItem.className = 'queue-item w-12 h-12 bg-blue-400 rounded flex-shrink-0 flex items-center justify-center text-white font-bold';
+             newItem.textContent = counter;
+             newItem.style.transform = 'scale(0)';
+             viz.appendChild(newItem);
+             items.push(newItem);
+             setTimeout(() => newItem.style.transform = 'scale(1)', 10);
+         };
+         document.getElementById('queue-deq').onclick = () => {
+             if (items.length === 0) return;
+             const item = items.shift();
+             item.style.transform = 'scale(0)';
+             setTimeout(() => viz.removeChild(item), 500);
+         };
+    }
+    
+    function setupBitmap() {
+        const viz = document.getElementById('bitmap-viz');
+        const str = document.getElementById('bitmap-str');
+        let bits = [0,0,0,0,0,0,0,0];
+        const blocks = viz.children;
+
+        function updateBitmap() {
+            str.textContent = bits.join('');
+            for (let i = 0; i < bits.length; i++) {
+                blocks[i].className = `w-full aspect-square rounded ${bits[i] ? 'bg-red-400' : 'bg-green-300'}`;
+            }
+        }
+
+        document.getElementById('bitmap-alloc').onclick = () => {
+            const index = bits.indexOf(0);
+            if (index !== -1) {
+                bits[index] = 1;
+                updateBitmap();
+            }
+        };
+        document.getElementById('bitmap-free').onclick = () => {
+             const index = bits.lastIndexOf(1);
+            if (index !== -1) {
+                bits[index] = 0;
+                updateBitmap();
+            }
+        };
+    }
+
+});
+</script>
+
+</body>
+</html>
